@@ -1,8 +1,10 @@
 package middlewares
 
 import (
+	"strconv"
 	"strings"
 
+	"github.com/agusheryanto182/go-inventory-management/module/feature/staff"
 	utils "github.com/agusheryanto182/go-inventory-management/utils/jwt"
 	"github.com/agusheryanto182/go-inventory-management/utils/response"
 	"github.com/golang-jwt/jwt"
@@ -35,9 +37,7 @@ func AuthMiddleware(jwtService utils.JWTInterface, staffService staff.ServiceSta
 				return response.SendStatusUnauthorizedResponse(c, "unauthorized: id user not valid "+err.Error())
 			}
 
-			staffID := uint64(staffIDFloat)
-
-			staff, err := staffService.GetStaffById(staffID)
+			staff, err := staffService.GetByID(strconv.Itoa(int(staffIDFloat)))
 			if err != nil {
 				return response.SendStatusUnauthorizedResponse(c, "unauthorized: id is not found "+err.Error())
 			}
