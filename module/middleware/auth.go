@@ -3,8 +3,8 @@ package middlewares
 import (
 	"strings"
 
-	utils "github.com/agusheryanto182/go-eniqilo-store/utils/jwt"
-	"github.com/agusheryanto182/go-eniqilo-store/utils/response"
+	utils "github.com/agusheryanto182/go-inventory-management/utils/jwt"
+	"github.com/agusheryanto182/go-inventory-management/utils/response"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
