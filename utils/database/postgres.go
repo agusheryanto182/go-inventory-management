@@ -1,44 +1,26 @@
 package database
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
-	"os"
 
-	_ "github.com/lib/pq"
+	"github.com/agusheryanto182/go-inventory-management/config"
+	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/jmoiron/sqlx"
 )
 
-func CreateConnection() (*sql.DB, error) {
-	dbUsername := os.Getenv("DB_USERNAME")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
-	dbParams := os.Getenv("DB_PARAMS")
+func InitDatabase() (*sqlx.DB, error) {
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?%s",
+		config.GetString("DB_USERNAME"),
+		config.GetString("DB_PASSWORD"),
+		config.GetString("DB_HOST"),
+		config.GetString("DB_PORT"),
+		config.GetString("DB_NAME"),
+		config.GetString("DB_PARAMS"),
+	)
 
-	strConnection := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?%s", dbUsername, dbPassword, dbHost, dbPort, dbName, dbParams)
+	db, err := sqlx.Connect("pgx", dsn)
 
-	// Define connection pool parameters (adjust as needed)
-	maxOpenConns := 20 // Maximum number of open connections in the pool
-	maxIdleConns := 10 // Maximum number of idle connections in the pool
+	fmt.Println(dsn)
 
-	db, err := sql.Open("postgres", strConnection)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create connection pool
-	db.SetMaxOpenConns(maxOpenConns)
-	db.SetMaxIdleConns(maxIdleConns)
-
-	// Test connection using PingContext
-	ctx := context.Background()
-	err = db.PingContext(ctx)
-	if err != nil {
-		db.Close() // Close the connection pool on error
-		return nil, err
-	}
-
-	return db, nil
+	return db, err
 }
