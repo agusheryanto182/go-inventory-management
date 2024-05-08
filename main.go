@@ -4,9 +4,15 @@ import (
 	staffHandler "github.com/agusheryanto182/go-inventory-management/module/feature/staff/handler"
 	staffRepo "github.com/agusheryanto182/go-inventory-management/module/feature/staff/repository"
 	staffSvc "github.com/agusheryanto182/go-inventory-management/module/feature/staff/service"
+
+	productHandler "github.com/agusheryanto182/go-inventory-management/module/feature/product/handler"
+	productRepo "github.com/agusheryanto182/go-inventory-management/module/feature/product/repository"
+	productSvc "github.com/agusheryanto182/go-inventory-management/module/feature/product/service"
+
 	middlewares "github.com/agusheryanto182/go-inventory-management/module/middleware"
 	"github.com/agusheryanto182/go-inventory-management/routes"
 	"github.com/agusheryanto182/go-inventory-management/utils/database"
+	"github.com/agusheryanto182/go-inventory-management/utils/jwt"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
@@ -16,14 +22,20 @@ func main() {
 
 	valid := validator.New()
 
+	jwtService := jwt.NewJWTService()
+
 	db, err := database.InitDatabase()
 	if err != nil {
 		e.Logger.Fatal(err)
 	}
 
 	staffRepo := staffRepo.NewStaffRepository(db)
-	staffSvc := staffSvc.NewStaffService(staffRepo)
+	staffSvc := staffSvc.NewStaffService(staffRepo, jwtService)
 	staffHandler := staffHandler.NewStaffHandler(staffSvc, valid)
+
+	productRepo := productRepo.NewProductRepository(db)
+	productSvc := productSvc.NewProductService(productRepo)
+	productHandler := productHandler.NewProductHandler(productSvc, valid)
 
 	// e.Pre(middleware.RemoveTrailingSlash())
 	// e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -34,6 +46,7 @@ func main() {
 
 	// TODO : add routes
 	routes.RouteStaff(e, staffHandler)
+	routes.RouteProduct(e, productHandler, jwtService, staffSvc)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

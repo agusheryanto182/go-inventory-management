@@ -3,7 +3,7 @@ package product
 import (
 	"github.com/agusheryanto182/go-inventory-management/module/entities"
 	"github.com/agusheryanto182/go-inventory-management/module/feature/product/dto"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type RepositoryProductInterface interface {
@@ -14,7 +14,7 @@ type RepositoryProductInterface interface {
 }
 
 type ServiceProductInterface interface {
-	Create(payload *dto.RequestCreateAndUpdateProduct) (*entities.Product, error)
+	Create(payload *dto.RequestCreateAndUpdateProduct) (*dto.ResponseCreatedProduct, error)
 	GetByParams(params map[string]interface{}) (*entities.Product, error)
 	Update(payload *dto.RequestCreateAndUpdateProduct) error
 	Delete(ID string) error

@@ -24,8 +24,7 @@ func (r *StaffRepository) GetByPhoneNumber(phoneNumber string) (*entities.Staff,
 // GetByID implements staff.RepositoryStaffInterface.
 func (r *StaffRepository) GetByID(ID string) (*entities.Staff, error) {
 	staff := &entities.Staff{}
-	err := r.db.Get(staff, "SELECT * FROM staffs WHERE user_id = $1", ID)
-	if err != nil {
+	if err := r.db.Get(staff, "SELECT id, name, password, phone_number FROM staffs WHERE id = $1", ID); err != nil {
 		return nil, err
 	}
 	return staff, nil
