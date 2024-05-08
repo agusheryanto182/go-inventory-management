@@ -75,7 +75,29 @@ func (r *ProductRepository) Create(product *entities.Product) (*entities.Product
 
 // Delete implements product.RepositoryProductInterface.
 func (r *ProductRepository) Delete(ID string) error {
-	panic("unimplemented")
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	query :=
+		`
+	DELETE FROM products WHERE id = $1
+	`
+
+	_, err = tx.Exec(query, ID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetByParams implements product.RepositoryProductInterface.

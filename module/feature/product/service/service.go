@@ -54,7 +54,7 @@ func (s *ProductService) Create(payload *dto.RequestCreateAndUpdateProduct) (*dt
 
 // Delete implements product.ServiceProductInterface.
 func (s *ProductService) Delete(ID string) error {
-	panic("unimplemented")
+	return s.productRepo.Delete(ID)
 }
 
 // GetByParams implements product.ServiceProductInterface.
