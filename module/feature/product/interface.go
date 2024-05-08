@@ -11,6 +11,7 @@ type RepositoryProductInterface interface {
 	GetByParams(params map[string]interface{}) (*entities.Product, error)
 	Update(product *entities.Product) error
 	Delete(ID string) error
+	IsProductExists(ID string) (bool, error)
 }
 
 type ServiceProductInterface interface {
@@ -18,6 +19,7 @@ type ServiceProductInterface interface {
 	GetByParams(params map[string]interface{}) (*entities.Product, error)
 	Update(payload *dto.RequestCreateAndUpdateProduct) error
 	Delete(ID string) error
+	IsProductExists(ID string) (bool, error)
 }
 
 type HandlerProductInterface interface {

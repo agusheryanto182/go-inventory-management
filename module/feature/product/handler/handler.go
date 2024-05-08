@@ -60,7 +60,47 @@ func (h *ProductHandler) GetByParams() echo.HandlerFunc {
 
 // Update implements product.HandlerProductInterface.
 func (h *ProductHandler) Update() echo.HandlerFunc {
-	panic("unimplemented")
+	return func(c echo.Context) error {
+		// TODO: add logic to get current user
+		currentStaff := c.Get("CurrentStaff").(*entities.Staff)
+		if currentStaff == nil {
+			return response.SendStatusUnauthorizedResponse(c, "unauthorized: missing token or invalid token")
+		}
+
+		// TODO: add logic to get id
+		id := c.Param("id")
+
+		// TODO: add logic to check product
+		isExist, _ := h.service.IsProductExists(id)
+		if !isExist {
+			c.Logger().Error("Product not found")
+			return response.SendStatusNotFoundResponse(c, "Product not found")
+		}
+
+		// TODO: add logic to bind request
+		updateRequest := new(dto.RequestCreateAndUpdateProduct)
+		if err := c.Bind(&updateRequest); err != nil {
+			c.Logger().Error(err.Error())
+			return response.SendBadRequestResponse(c, err.Error())
+		}
+
+		// TODO: add validation
+		if err := h.validator.Struct(updateRequest); err != nil {
+			c.Logger().Error(err.Error())
+			return response.SendBadRequestResponse(c, err.Error())
+		}
+
+		updateRequest.ID = id
+
+		// TODO: add logic to update product
+		if err := h.service.Update(updateRequest); err != nil {
+			c.Logger().Error(err.Error())
+			return response.SendBadRequestResponse(c, err.Error())
+		}
+
+		// TODO: add logic to return response
+		return response.SendStatusOkResponse(c, "Product successfully updated")
+	}
 }
 
 func NewProductHandler(service product.ServiceProductInterface, validator *validator.Validate) product.HandlerProductInterface {

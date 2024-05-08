@@ -14,6 +14,11 @@ type ProductService struct {
 	productRepo product.RepositoryProductInterface
 }
 
+// IsProductExists implements product.ServiceProductInterface.
+func (s *ProductService) IsProductExists(ID string) (bool, error) {
+	return s.productRepo.IsProductExists(ID)
+}
+
 // Create implements product.ServiceProductInterface.
 func (s *ProductService) Create(payload *dto.RequestCreateAndUpdateProduct) (*dto.ResponseCreatedProduct, error) {
 	// TODO: add logic to create uuid
@@ -59,7 +64,25 @@ func (s *ProductService) GetByParams(params map[string]interface{}) (*entities.P
 
 // Update implements product.ServiceProductInterface.
 func (s *ProductService) Update(payload *dto.RequestCreateAndUpdateProduct) error {
-	panic("unimplemented")
+	// TODO: add logic to mapping payload
+	product := &entities.Product{
+		ID:          payload.ID,
+		Name:        payload.Name,
+		Sku:         payload.Sku,
+		Category:    payload.Category,
+		ImageURL:    payload.ImageURL,
+		Notes:       payload.Notes,
+		Price:       payload.Price,
+		Stock:       payload.Stock,
+		Location:    payload.Location,
+		IsAvailable: payload.IsAvailable,
+	}
+
+	if err := s.productRepo.Update(product); err != nil {
+		return errors.New("failed to update product : " + err.Error())
+	}
+
+	return nil
 }
 
 func NewProductService(productRepo product.RepositoryProductInterface) product.ServiceProductInterface {
