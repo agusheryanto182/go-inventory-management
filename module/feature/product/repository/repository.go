@@ -5,11 +5,23 @@ import (
 
 	"github.com/agusheryanto182/go-inventory-management/module/entities"
 	"github.com/agusheryanto182/go-inventory-management/module/feature/product"
+	"github.com/agusheryanto182/go-inventory-management/module/feature/product/dto"
 	"github.com/jmoiron/sqlx"
 )
 
 type ProductRepository struct {
 	db *sqlx.DB
+}
+
+// IsSkuExists implements product.RepositoryProductInterface.
+func (r *ProductRepository) IsSkuExists(sku string) (bool, error) {
+	var exists bool
+	err := r.db.Get(&exists, "SELECT EXISTS (SELECT 1 FROM products WHERE sku = $1)", sku)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
 }
 
 // IsProductExists implements product.RepositoryProductInterface.
@@ -101,8 +113,27 @@ func (r *ProductRepository) Delete(ID string) error {
 }
 
 // GetByParams implements product.RepositoryProductInterface.
-func (r *ProductRepository) GetByParams(params map[string]interface{}) (*entities.Product, error) {
-	panic("unimplemented")
+func (r *ProductRepository) GetByParams(query string, params []interface{}) ([]*dto.ResponseProducts, error) {
+	rows, err := r.db.Queryx(query, params...)
+	if err != nil {
+		return nil, nil
+	}
+
+	var products []*dto.ResponseProducts
+
+	defer rows.Close()
+	// TODO: add logic to mapping rows
+	for rows.Next() {
+		product := &dto.ResponseProducts{}
+		err = rows.StructScan(product)
+		if err != nil {
+			return nil, nil
+		}
+		products = append(products, product)
+	}
+
+	return products, nil
+
 }
 
 // Update implements product.RepositoryProductInterface.
