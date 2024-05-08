@@ -31,12 +31,7 @@ func (h *StaffHandler) Login() echo.HandlerFunc {
 		}
 
 		// TODO: add logic to check if phone number already exist
-		isPhoneNumberExists, err := h.service.IsPhoneNumberExists(loginRequest.PhoneNumber)
-		if err != nil {
-			c.Logger().Error(err.Error())
-			return response.SendBadRequestResponse(c, err.Error())
-		}
-
+		isPhoneNumberExists, _ := h.service.IsPhoneNumberExists(loginRequest.PhoneNumber)
 		if !isPhoneNumberExists {
 			c.Logger().Error("user is not found")
 			return response.SendStatusNotFoundResponse(c, "user is not found")
@@ -71,11 +66,7 @@ func (h *StaffHandler) Register() echo.HandlerFunc {
 		}
 
 		// TODO: add logic to check if phone number already exist
-		isPhoneNumberExists, err := h.service.IsPhoneNumberExists(registerRequest.PhoneNumber)
-		if err != nil {
-			c.Logger().Error(err.Error())
-			return response.SendBadRequestResponse(c, err.Error())
-		}
+		isPhoneNumberExists, _ := h.service.IsPhoneNumberExists(registerRequest.PhoneNumber)
 		if isPhoneNumberExists {
 			c.Logger().Error("Phone number already exist")
 			return response.SendStatusConflictResponse(c, "Phone number already exist")
