@@ -16,9 +16,9 @@ CREATE TABLE IF NOT EXISTS products(
     sku VARCHAR(30) NOT NULL,
     category VARCHAR(30) NOT NULL,
     image_url TEXT NOT NULL, 
+    stock INT NOT NULL,
     notes VARCHAR(200) NOT NULL,
     price FLOAT NOT NULL,
-    stock INT NOT NULL,
     location VARCHAR(200) NOT NULL,
     is_available BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL

@@ -13,6 +13,7 @@ type RepositoryProductInterface interface {
 	Delete(ID string) error
 	IsProductExists(ID string) (bool, error)
 	IsSkuExists(sku string) (bool, error)
+	GetByCustomer(query string, params []interface{}) ([]*dto.CustomerResponseProducts, error)
 }
 
 type ServiceProductInterface interface {
@@ -22,6 +23,7 @@ type ServiceProductInterface interface {
 	Delete(ID string) error
 	IsProductExists(ID string) (bool, error)
 	IsSkuExists(sku string) (bool, error)
+	GetByCustomer(query string, params []interface{}) ([]*dto.CustomerResponseProducts, error)
 }
 
 type HandlerProductInterface interface {
@@ -29,4 +31,5 @@ type HandlerProductInterface interface {
 	GetByParams() echo.HandlerFunc
 	Update() echo.HandlerFunc
 	Delete() echo.HandlerFunc
+	GetByCustomer() echo.HandlerFunc
 }
