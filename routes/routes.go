@@ -17,7 +17,7 @@ func RouteStaff(e *echo.Echo, h staff.HandlerStaffInterface) {
 func RouteProduct(e *echo.Echo, h product.HandlerProductInterface, jwtService jwt.JWTInterface, staffService staff.ServiceStaffInterface) {
 	productGroup := e.Group("v1/product")
 	productGroup.POST("", h.Create(), middlewares.AuthMiddleware(jwtService, staffService))
-	// productGroup.GET("/get-by-params", h.GetByParams())
+	productGroup.GET("", h.GetByParams(), middlewares.AuthMiddleware(jwtService, staffService))
 	productGroup.PUT("/:id", h.Update(), middlewares.AuthMiddleware(jwtService, staffService))
-	// productGroup.DELETE("/delete", h.Delete())
+	productGroup.DELETE("/:id", h.Delete(), middlewares.AuthMiddleware(jwtService, staffService))
 }
