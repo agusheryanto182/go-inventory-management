@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/agusheryanto182/go-inventory-management/module/feature/staff"
@@ -17,6 +16,7 @@ func AuthMiddleware(jwtService utils.JWTInterface, staffService staff.ServiceSta
 			authHeader := c.Request().Header.Get("Authorization")
 
 			if !strings.HasPrefix(authHeader, "Bearer ") {
+				c.Logger().Error("unauthorized: missing token or invalid token")
 				return response.SendStatusUnauthorizedResponse(c, "unauthorized: missing token or invalid token")
 			}
 
@@ -24,21 +24,25 @@ func AuthMiddleware(jwtService utils.JWTInterface, staffService staff.ServiceSta
 
 			token, err := jwtService.ValidateToken(tokenString)
 			if err != nil {
+				c.Logger().Error("unauthorized: invalid token " + err.Error())
 				return response.SendStatusUnauthorizedResponse(c, "unauthorized: invalid token "+err.Error())
 			}
 
 			claims, ok := token.Claims.(jwt.MapClaims)
 			if !ok || !token.Valid {
-				return response.SendStatusUnauthorizedResponse(c, "unauthorized: token is expired "+err.Error())
+				c.Logger().Error("unauthorized: token is expired")
+				return response.SendStatusUnauthorizedResponse(c, "unauthorized: token is expired")
 			}
 
-			staffIDFloat, ok := claims["id"].(float64)
+			staffID, ok := claims["id"].(string)
 			if !ok {
-				return response.SendStatusUnauthorizedResponse(c, "unauthorized: id user not valid "+err.Error())
+				c.Logger().Error("unauthorized: id user not valid || id : ", staffID)
+				return response.SendStatusUnauthorizedResponse(c, "unauthorized: id user not valid")
 			}
 
-			staff, err := staffService.GetByID(strconv.Itoa(int(staffIDFloat)))
+			staff, err := staffService.GetByID(staffID)
 			if err != nil {
+				c.Logger().Error("unauthorized: id is not found " + err.Error())
 				return response.SendStatusUnauthorizedResponse(c, "unauthorized: id is not found "+err.Error())
 			}
 

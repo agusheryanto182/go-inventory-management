@@ -15,6 +15,10 @@ type SuccessResponse struct {
 	Data    interface{} `json:"data"`
 }
 
+type SuccessResponseWithoutData struct {
+	Message string `json:"message"`
+}
+
 func SendStatusForbiddenResponse(c echo.Context, message string) error {
 	return c.JSON(http.StatusForbidden, ErrorResponse{
 		Message: message,
@@ -25,6 +29,12 @@ func SendStatusCreatedResponse(c echo.Context, message string, data interface{})
 	return c.JSON(http.StatusCreated, SuccessResponse{
 		Message: message,
 		Data:    data,
+	})
+}
+
+func SendStatusOkResponse(c echo.Context, message string) error {
+	return c.JSON(http.StatusOK, SuccessResponseWithoutData{
+		Message: message,
 	})
 }
 

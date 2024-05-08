@@ -20,7 +20,5 @@ func InitDatabase() (*sqlx.DB, error) {
 
 	db, err := sqlx.Connect("pgx", dsn)
 
-	fmt.Println(dsn)
-
 	return db, err
 }

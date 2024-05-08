@@ -12,9 +12,15 @@ type JWTInterface interface {
 	ValidateToken(tokenString string) (*jwt.Token, error)
 }
 
+type JWTService struct{}
+
+func NewJWTService() JWTInterface {
+	return &JWTService{}
+}
+
 var SECRET = config.GetString("JWT_SECRET")
 
-func GenerateJWT(ID, phone_number string) (string, error) {
+func (s *JWTService) GenerateJWT(ID, phone_number string) (string, error) {
 	claims := jwt.MapClaims{
 		"id":           ID,
 		"phone_number": phone_number,
@@ -31,7 +37,7 @@ func GenerateJWT(ID, phone_number string) (string, error) {
 	return accessToken, nil
 }
 
-func ValidateToken(tokenString string) (*jwt.Token, error) {
+func (s *JWTService) ValidateToken(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 		return []byte(SECRET), nil
 	})

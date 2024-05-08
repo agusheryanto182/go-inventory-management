@@ -13,6 +13,7 @@ import (
 
 type StaffService struct {
 	repository staff.RepositoryStaffInterface
+	jwtService jwt.JWTInterface
 }
 
 // GetByID implements staff.ServiceStaffInterface.
@@ -39,7 +40,7 @@ func (s *StaffService) Login(payload *dto.StaffLoginReq) (*entities.Staff, error
 	}
 
 	// TODO: add logic to generate access token
-	token, err := jwt.GenerateJWT(staff.ID, staff.PhoneNumber)
+	token, err := s.jwtService.GenerateJWT(staff.ID, staff.PhoneNumber)
 	if err != nil {
 		return nil, errors.New("failed generate access token : " + err.Error())
 	}
@@ -61,7 +62,7 @@ func (s *StaffService) Register(payload *dto.StaffRegisterReq) (*entities.Staff,
 		return nil, errors.New("failed generate uuid : " + err.Error())
 	}
 
-	token, err := jwt.GenerateJWT(uuid, payload.PhoneNumber)
+	token, err := s.jwtService.GenerateJWT(uuid, payload.PhoneNumber)
 	if err != nil {
 		return nil, errors.New("failed generate access token : " + err.Error())
 	}
@@ -81,8 +82,9 @@ func (s *StaffService) Register(payload *dto.StaffRegisterReq) (*entities.Staff,
 	return result, nil
 }
 
-func NewStaffService(repository staff.RepositoryStaffInterface) staff.ServiceStaffInterface {
+func NewStaffService(repository staff.RepositoryStaffInterface, jwtService jwt.JWTInterface) staff.ServiceStaffInterface {
 	return &StaffService{
 		repository: repository,
+		jwtService: jwtService,
 	}
 }

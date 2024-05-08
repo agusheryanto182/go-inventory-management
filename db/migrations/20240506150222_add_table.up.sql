@@ -20,9 +20,8 @@ CREATE TABLE IF NOT EXISTS products(
     price FLOAT NOT NULL,
     stock INT NOT NULL,
     location VARCHAR(200) NOT NULL,
-    is_available BOOLEAN NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP
+    is_available BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 ) WITH (fillfactor=60);
 
 CREATE INDEX IF NOT EXISTS idx_id_sku_name_category_location_is_available_price_stock_created_at ON products(id, sku, name, category, location, is_available, price, stock, created_at) WITH (fillfactor=100);
