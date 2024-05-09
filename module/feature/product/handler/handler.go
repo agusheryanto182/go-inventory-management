@@ -17,6 +17,98 @@ type ProductHandler struct {
 	validator *validator.Validate
 }
 
+// GetByCustomer implements product.HandlerProductInterface.
+func (h *ProductHandler) GetByCustomer() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		query := "SELECT id, name, sku, category, image_url, notes, price, stock, location, is_available, to_char(created_at AT TIME ZONE 'ASIA/JAKARTA', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS created_at FROM products WHERE 1=1 AND is_available = true"
+		params := make([]interface{}, 0)
+
+		// TODO: add logic to limit and offset
+		limit := c.QueryParam("limit")
+		limitInt, _ := strconv.Atoi(limit)
+
+		offset := c.QueryParam("offset")
+		offsetInt, _ := strconv.Atoi(offset)
+
+		// TODO: add logic to get name
+		nameClean := strings.ReplaceAll(c.QueryParam("name"), "\"", "")
+		if nameClean != "" {
+			query += " AND LOWER(name) LIKE LOWER(CONCAT('%', $" + strconv.Itoa(len(params)+1) + "::text, '%'))"
+			params = append(params, nameClean)
+		}
+
+		// TODO: add logic to get category param
+		categoryClean := strings.ReplaceAll(c.QueryParam("category"), "\"", "")
+		if categoryClean == "Clothing" || categoryClean == "Accessories" || categoryClean == "Footwear" || categoryClean == "Beverages" {
+			query += " AND category = $" + strconv.Itoa(len(params)+1)
+			params = append(params, categoryClean)
+		}
+
+		// TODO: add logic to get sku param
+		skuClean := strings.ReplaceAll(c.QueryParam("sku"), "\"", "")
+		if skuClean != "" {
+			// isExist, _ := h.service.IsSkuExists(sku)
+			// if !isExist {
+			// 	return response.SendStatusOkWithDataResponse(c, "Success", &[]dto.ResponseProducts{})
+			// }
+			query += " AND sku = $" + strconv.Itoa(len(params)+1)
+			params = append(params, skuClean)
+		}
+
+		// TODO: add logic to get inStock param
+		inStock := c.QueryParam("inStock")
+		if inStock == "true" {
+			query += " AND stock > 0"
+		} else if inStock == "false" {
+			query += " AND stock = 0"
+		}
+
+		// TODO: add logic to get price param
+		priceClean := strings.ReplaceAll(c.QueryParam("price"), "\"", "")
+		if priceClean == "asc" || priceClean == "desc" {
+			query += " ORDER BY price " + priceClean
+		}
+
+		// TODO: add logic to get createdAt param
+		if priceClean == "" {
+			query += " ORDER BY created_at DESC"
+		} else if priceClean != "" {
+			query += ", created_at DESC"
+		}
+
+		if limit == "" {
+			limitInt = 5
+			query += " LIMIT $" + strconv.Itoa(len(params)+1)
+			params = append(params, limitInt)
+		} else {
+			query += " LIMIT $" + strconv.Itoa(len(params)+1)
+			params = append(params, limitInt)
+		}
+
+		if offset == "" {
+			offsetInt = 0
+			query += " OFFSET $" + strconv.Itoa(len(params)+1)
+			params = append(params, offsetInt)
+		} else {
+			query += " OFFSET $" + strconv.Itoa(len(params)+1)
+			params = append(params, offsetInt)
+		}
+
+		// TODO: add logic to get product
+		product, err := h.service.GetByCustomer(query, params)
+		if err != nil {
+			c.Logger().Error(err.Error())
+			return response.SendStatusInternalServerResponse(c, err.Error())
+		}
+
+		if len(product) == 0 {
+			return response.SendStatusOkWithDataResponse(c, "success", &[]dto.ResponseProducts{})
+		}
+
+		return response.SendStatusOkWithDataResponse(c, "success", product)
+	}
+}
+
 // Create implements product.HandlerProductInterface.
 func (h *ProductHandler) Create() echo.HandlerFunc {
 	return func(c echo.Context) error {

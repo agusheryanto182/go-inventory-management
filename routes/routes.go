@@ -20,4 +20,6 @@ func RouteProduct(e *echo.Echo, h product.HandlerProductInterface, jwtService jw
 	productGroup.GET("", h.GetByParams(), middlewares.AuthMiddleware(jwtService, staffService))
 	productGroup.PUT("/:id", h.Update(), middlewares.AuthMiddleware(jwtService, staffService))
 	productGroup.DELETE("/:id", h.Delete(), middlewares.AuthMiddleware(jwtService, staffService))
+
+	productGroup.GET("/customer", h.GetByCustomer())
 }

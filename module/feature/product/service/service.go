@@ -14,6 +14,11 @@ type ProductService struct {
 	productRepo product.RepositoryProductInterface
 }
 
+// GetByCustomer implements product.ServiceProductInterface.
+func (s *ProductService) GetByCustomer(query string, params []interface{}) ([]*dto.CustomerResponseProducts, error) {
+	return s.productRepo.GetByCustomer(query, params)
+}
+
 // IsSkuExists implements product.ServiceProductInterface.
 func (s *ProductService) IsSkuExists(sku string) (bool, error) {
 	return s.productRepo.IsSkuExists(sku)

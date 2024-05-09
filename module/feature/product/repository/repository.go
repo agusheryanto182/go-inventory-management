@@ -13,6 +13,16 @@ type ProductRepository struct {
 	db *sqlx.DB
 }
 
+// GetByCustomer implements product.RepositoryProductInterface.
+func (r *ProductRepository) GetByCustomer(query string, params []interface{}) ([]*dto.CustomerResponseProducts, error) {
+	var products []*dto.CustomerResponseProducts
+	err := r.db.Select(&products, query, params...)
+	if err != nil {
+		return nil, nil
+	}
+	return products, nil
+}
+
 // IsSkuExists implements product.RepositoryProductInterface.
 func (r *ProductRepository) IsSkuExists(sku string) (bool, error) {
 	var exists bool
@@ -114,22 +124,10 @@ func (r *ProductRepository) Delete(ID string) error {
 
 // GetByParams implements product.RepositoryProductInterface.
 func (r *ProductRepository) GetByParams(query string, params []interface{}) ([]*dto.ResponseProducts, error) {
-	rows, err := r.db.Queryx(query, params...)
+	var products []*dto.ResponseProducts
+	err := r.db.Select(&products, query, params...)
 	if err != nil {
 		return nil, nil
-	}
-
-	var products []*dto.ResponseProducts
-
-	defer rows.Close()
-	// TODO: add logic to mapping rows
-	for rows.Next() {
-		product := &dto.ResponseProducts{}
-		err = rows.StructScan(product)
-		if err != nil {
-			return nil, nil
-		}
-		products = append(products, product)
 	}
 
 	return products, nil
