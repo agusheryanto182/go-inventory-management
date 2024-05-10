@@ -40,7 +40,7 @@ func AuthMiddleware(jwtService utils.JWTInterface, staffService staff.ServiceSta
 				return response.SendStatusUnauthorizedResponse(c, "unauthorized: id user not valid")
 			}
 
-			staff, err := staffService.GetByID(staffID)
+			staff, err := staffService.GetStaffByID(staffID)
 			if err != nil {
 				c.Logger().Error("unauthorized: id is not found " + err.Error())
 				return response.SendStatusUnauthorizedResponse(c, "unauthorized: id is not found "+err.Error())

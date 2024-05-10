@@ -8,27 +8,27 @@ import (
 
 type RepositoryProductInterface interface {
 	Create(product *entities.Product) (*entities.Product, error)
-	GetByParams(query string, params []interface{}) ([]*dto.ResponseProducts, error)
+	GetProductByFilters(query string, filters []interface{}) ([]*dto.ResponseProducts, error)
 	Update(product *entities.Product) error
 	Delete(ID string) error
 	IsProductExists(ID string) (bool, error)
 	IsSkuExists(sku string) (bool, error)
-	GetByCustomer(query string, params []interface{}) ([]*dto.CustomerResponseProducts, error)
+	GetByCustomer(query string, filters []interface{}) ([]*dto.CustomerResponseProducts, error)
 }
 
 type ServiceProductInterface interface {
 	Create(payload *dto.RequestCreateAndUpdateProduct) (*dto.ResponseCreatedProduct, error)
-	GetByParams(query string, params []interface{}) ([]*dto.ResponseProducts, error)
+	GetProductByFilters(query string, filters []interface{}) ([]*dto.ResponseProducts, error)
 	Update(payload *dto.RequestCreateAndUpdateProduct) error
 	Delete(ID string) error
 	IsProductExists(ID string) (bool, error)
 	IsSkuExists(sku string) (bool, error)
-	GetByCustomer(query string, params []interface{}) ([]*dto.CustomerResponseProducts, error)
+	GetByCustomer(query string, filters []interface{}) ([]*dto.CustomerResponseProducts, error)
 }
 
 type HandlerProductInterface interface {
 	Create() echo.HandlerFunc
-	GetByParams() echo.HandlerFunc
+	GetProductByFilters() echo.HandlerFunc
 	Update() echo.HandlerFunc
 	Delete() echo.HandlerFunc
 	GetByCustomer() echo.HandlerFunc

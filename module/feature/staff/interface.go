@@ -7,20 +7,20 @@ import (
 )
 
 type RepositoryStaffInterface interface {
-	Register(staff *entities.Staff) (*entities.Staff, error)
-	IsPhoneNumberExists(phoneNumber string) (bool, error)
-	GetByID(ID string) (*entities.Staff, error)
-	GetByPhoneNumber(phoneNumber string) (*entities.Staff, error)
+	StaffRegister(staff *entities.Staff) (*entities.Staff, error)
+	IsStaffPhoneNumberExists(phoneNumber string) (bool, error)
+	GetStaffByID(ID string) (*entities.Staff, error)
+	GetStaffByPhoneNumber(phoneNumber string) (*entities.Staff, error)
 }
 
 type ServiceStaffInterface interface {
-	Register(payload *dto.StaffRegisterReq) (*entities.Staff, error)
-	Login(payload *dto.StaffLoginReq) (*entities.Staff, error)
-	IsPhoneNumberExists(phoneNumber string) (bool, error)
-	GetByID(ID string) (*entities.Staff, error)
+	StaffRegister(payload *dto.StaffRegisterReq) (*entities.Staff, error)
+	StaffLogin(payload *dto.StaffLoginReq) (*entities.Staff, error)
+	IsStaffPhoneNumberExists(phoneNumber string) (bool, error)
+	GetStaffByID(ID string) (*entities.Staff, error)
 }
 
 type HandlerStaffInterface interface {
-	Register() echo.HandlerFunc
-	Login() echo.HandlerFunc
+	StaffRegister() echo.HandlerFunc
+	StaffLogin() echo.HandlerFunc
 }

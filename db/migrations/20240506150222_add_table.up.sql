@@ -28,8 +28,8 @@ CREATE INDEX IF NOT EXISTS idx_id_sku_name_category_location_is_available_price_
 
 CREATE TABLE IF NOT EXISTS customers (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    name VARCHAR(50) NOT NULL,
     phone_number VARCHAR(16) NOT NULL,
+    name VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 ) WITH (fillfactor=70);
 

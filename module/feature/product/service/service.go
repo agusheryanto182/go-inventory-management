@@ -15,8 +15,8 @@ type ProductService struct {
 }
 
 // GetByCustomer implements product.ServiceProductInterface.
-func (s *ProductService) GetByCustomer(query string, params []interface{}) ([]*dto.CustomerResponseProducts, error) {
-	return s.productRepo.GetByCustomer(query, params)
+func (s *ProductService) GetByCustomer(query string, filters []interface{}) ([]*dto.CustomerResponseProducts, error) {
+	return s.productRepo.GetByCustomer(query, filters)
 }
 
 // IsSkuExists implements product.ServiceProductInterface.
@@ -68,8 +68,8 @@ func (s *ProductService) Delete(ID string) error {
 }
 
 // GetByParams implements product.ServiceProductInterface.
-func (s *ProductService) GetByParams(query string, params []interface{}) ([]*dto.ResponseProducts, error) {
-	return s.productRepo.GetByParams(query, params)
+func (s *ProductService) GetProductByFilters(query string, filters []interface{}) ([]*dto.ResponseProducts, error) {
+	return s.productRepo.GetProductByFilters(query, filters)
 }
 
 // Update implements product.ServiceProductInterface.

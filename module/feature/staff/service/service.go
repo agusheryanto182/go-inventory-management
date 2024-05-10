@@ -16,20 +16,21 @@ type StaffService struct {
 	jwtService jwt.JWTInterface
 }
 
+
 // GetByID implements staff.ServiceStaffInterface.
-func (s *StaffService) GetByID(ID string) (*entities.Staff, error) {
-	return s.repository.GetByID(ID)
+func (s *StaffService) GetStaffByID(ID string) (*entities.Staff, error) {
+	return s.repository.GetStaffByID(ID)
 }
 
 // IsPhoneNumberExists implements staff.ServiceStaffInterface.
-func (s *StaffService) IsPhoneNumberExists(phoneNumber string) (bool, error) {
-	return s.repository.IsPhoneNumberExists(phoneNumber)
+func (s *StaffService) IsStaffPhoneNumberExists(phoneNumber string) (bool, error) {
+	return s.repository.IsStaffPhoneNumberExists(phoneNumber)
 }
 
 // Login implements staff.ServiceStaffInterface.
-func (s *StaffService) Login(payload *dto.StaffLoginReq) (*entities.Staff, error) {
+func (s *StaffService) StaffLogin(payload *dto.StaffLoginReq) (*entities.Staff, error) {
 	// TODO: add logic to get staff by phone number
-	staff, err := s.repository.GetByPhoneNumber(payload.PhoneNumber)
+	staff, err := s.repository.GetStaffByPhoneNumber(payload.PhoneNumber)
 	if err != nil {
 		return nil, errors.New("failed get staff by number : " + err.Error())
 	}
@@ -51,7 +52,7 @@ func (s *StaffService) Login(payload *dto.StaffLoginReq) (*entities.Staff, error
 }
 
 // Register implements staff.ServiceStaffInterface.
-func (s *StaffService) Register(payload *dto.StaffRegisterReq) (*entities.Staff, error) {
+func (s *StaffService) StaffRegister(payload *dto.StaffRegisterReq) (*entities.Staff, error) {
 	password, err := hash.HashPassword(payload.Password)
 	if err != nil {
 		return nil, errors.New("failed hash password : " + err.Error())
@@ -67,7 +68,7 @@ func (s *StaffService) Register(payload *dto.StaffRegisterReq) (*entities.Staff,
 		return nil, errors.New("failed generate access token : " + err.Error())
 	}
 
-	result, err := s.repository.Register(&entities.Staff{
+	result, err := s.repository.StaffRegister(&entities.Staff{
 		ID:          uuid,
 		Name:        payload.Name,
 		PhoneNumber: payload.PhoneNumber,

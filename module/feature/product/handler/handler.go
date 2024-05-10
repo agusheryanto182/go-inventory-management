@@ -21,7 +21,7 @@ type ProductHandler struct {
 func (h *ProductHandler) GetByCustomer() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		query := "SELECT id, name, sku, category, image_url, notes, price, stock, location, is_available, to_char(created_at AT TIME ZONE 'ASIA/JAKARTA', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS created_at FROM products WHERE 1=1 AND is_available = true"
-		params := make([]interface{}, 0)
+		filters := make([]interface{}, 0)
 
 		// TODO: add logic to limit and offset
 		limit := c.QueryParam("limit")
@@ -33,15 +33,15 @@ func (h *ProductHandler) GetByCustomer() echo.HandlerFunc {
 		// TODO: add logic to get name
 		nameClean := strings.ReplaceAll(c.QueryParam("name"), "\"", "")
 		if nameClean != "" {
-			query += " AND LOWER(name) LIKE LOWER(CONCAT('%', $" + strconv.Itoa(len(params)+1) + "::text, '%'))"
-			params = append(params, nameClean)
+			query += " AND name ILIKE(CONCAT('%', $" + strconv.Itoa(len(filters)+1) + "::text, '%'))"
+			filters = append(filters, nameClean)
 		}
 
 		// TODO: add logic to get category param
 		categoryClean := strings.ReplaceAll(c.QueryParam("category"), "\"", "")
 		if categoryClean == "Clothing" || categoryClean == "Accessories" || categoryClean == "Footwear" || categoryClean == "Beverages" {
-			query += " AND category = $" + strconv.Itoa(len(params)+1)
-			params = append(params, categoryClean)
+			query += " AND category = $" + strconv.Itoa(len(filters)+1)
+			filters = append(filters, categoryClean)
 		}
 
 		// TODO: add logic to get sku param
@@ -51,8 +51,8 @@ func (h *ProductHandler) GetByCustomer() echo.HandlerFunc {
 			// if !isExist {
 			// 	return response.SendStatusOkWithDataResponse(c, "Success", &[]dto.ResponseProducts{})
 			// }
-			query += " AND sku = $" + strconv.Itoa(len(params)+1)
-			params = append(params, skuClean)
+			query += " AND sku = $" + strconv.Itoa(len(filters)+1)
+			filters = append(filters, skuClean)
 		}
 
 		// TODO: add logic to get inStock param
@@ -78,24 +78,24 @@ func (h *ProductHandler) GetByCustomer() echo.HandlerFunc {
 
 		if limit == "" {
 			limitInt = 5
-			query += " LIMIT $" + strconv.Itoa(len(params)+1)
-			params = append(params, limitInt)
+			query += " LIMIT $" + strconv.Itoa(len(filters)+1)
+			filters = append(filters, limitInt)
 		} else {
-			query += " LIMIT $" + strconv.Itoa(len(params)+1)
-			params = append(params, limitInt)
+			query += " LIMIT $" + strconv.Itoa(len(filters)+1)
+			filters = append(filters, limitInt)
 		}
 
 		if offset == "" {
 			offsetInt = 0
-			query += " OFFSET $" + strconv.Itoa(len(params)+1)
-			params = append(params, offsetInt)
+			query += " OFFSET $" + strconv.Itoa(len(filters)+1)
+			filters = append(filters, offsetInt)
 		} else {
-			query += " OFFSET $" + strconv.Itoa(len(params)+1)
-			params = append(params, offsetInt)
+			query += " OFFSET $" + strconv.Itoa(len(filters)+1)
+			filters = append(filters, offsetInt)
 		}
 
 		// TODO: add logic to get product
-		product, err := h.service.GetByCustomer(query, params)
+		product, err := h.service.GetByCustomer(query, filters)
 		if err != nil {
 			c.Logger().Error(err.Error())
 			return response.SendStatusInternalServerResponse(c, err.Error())
@@ -174,16 +174,16 @@ func (h *ProductHandler) Delete() echo.HandlerFunc {
 }
 
 // GetByParams implements product.HandlerProductInterface.
-func (h *ProductHandler) GetByParams() echo.HandlerFunc {
+func (h *ProductHandler) GetProductByFilters() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		query := "SELECT id, name, sku, category, image_url, notes, price, stock, location, is_available, to_char(created_at AT TIME ZONE 'ASIA/JAKARTA', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS created_at FROM products WHERE 1=1"
-		params := make([]interface{}, 0)
-
 		// TODO: add logic to get current user
 		currentStaff := c.Get("CurrentStaff").(*entities.Staff)
 		if currentStaff == nil {
 			return response.SendStatusUnauthorizedResponse(c, "unauthorized: missing token or invalid token")
 		}
+
+		query := "SELECT id, name, sku, category, image_url, notes, price, stock, location, is_available, to_char(created_at AT TIME ZONE 'ASIA/JAKARTA', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS created_at FROM products WHERE 1=1"
+		filters := make([]interface{}, 0)
 
 		// TODO: add logic to get id
 		idClean := strings.ReplaceAll(c.QueryParam("id"), "\"", "")
@@ -192,8 +192,8 @@ func (h *ProductHandler) GetByParams() echo.HandlerFunc {
 			// if !isExist {
 			// 	return response.SendStatusOkWithDataResponse(c, "Success", &[]dto.ResponseProducts{})
 			// }
-			query += " AND id = $" + strconv.Itoa(len(params)+1)
-			params = append(params, idClean)
+			query += " AND id = $" + strconv.Itoa(len(filters)+1)
+			filters = append(filters, idClean)
 		}
 
 		// TODO: add logic to limit and offset
@@ -206,23 +206,23 @@ func (h *ProductHandler) GetByParams() echo.HandlerFunc {
 		// TODO: add logic to get name
 		nameClean := strings.ReplaceAll(c.QueryParam("name"), "\"", "")
 		if nameClean != "" {
-			query += " AND LOWER(name) LIKE LOWER(CONCAT('%', $" + strconv.Itoa(len(params)+1) + "::text, '%'))"
-			params = append(params, nameClean)
+			query += " AND name ILIKE (CONCAT('%', $" + strconv.Itoa(len(filters)+1) + "::text, '%'))"
+			filters = append(filters, nameClean)
 		}
 
 		// TODO: add logic to get isAvailable param
 		isAvailable := c.QueryParam("isAvailable")
 		if isAvailable == "true" || isAvailable == "false" {
-			query += " AND is_available = $" + strconv.Itoa(len(params)+1)
+			query += " AND is_available = $" + strconv.Itoa(len(filters)+1)
 			isAvailableBool, _ := strconv.ParseBool(isAvailable)
-			params = append(params, isAvailableBool)
+			filters = append(filters, isAvailableBool)
 		}
 
 		// TODO: add logic to get category param
 		categoryClean := strings.ReplaceAll(c.QueryParam("category"), "\"", "")
 		if categoryClean == "Clothing" || categoryClean == "Accessories" || categoryClean == "Footwear" || categoryClean == "Beverages" {
-			query += " AND category = $" + strconv.Itoa(len(params)+1)
-			params = append(params, categoryClean)
+			query += " AND category = $" + strconv.Itoa(len(filters)+1)
+			filters = append(filters, categoryClean)
 		}
 
 		// TODO: add logic to get sku param
@@ -232,8 +232,8 @@ func (h *ProductHandler) GetByParams() echo.HandlerFunc {
 			// if !isExist {
 			// 	return response.SendStatusOkWithDataResponse(c, "Success", &[]dto.ResponseProducts{})
 			// }
-			query += " AND sku = $" + strconv.Itoa(len(params)+1)
-			params = append(params, skuClean)
+			query += " AND sku = $" + strconv.Itoa(len(filters)+1)
+			filters = append(filters, skuClean)
 		}
 
 		// TODO: add logic to get inStock param
@@ -268,24 +268,24 @@ func (h *ProductHandler) GetByParams() echo.HandlerFunc {
 
 		if limit == "" {
 			limitInt = 5
-			query += " LIMIT $" + strconv.Itoa(len(params)+1)
-			params = append(params, limitInt)
+			query += " LIMIT $" + strconv.Itoa(len(filters)+1)
+			filters = append(filters, limitInt)
 		} else {
-			query += " LIMIT $" + strconv.Itoa(len(params)+1)
-			params = append(params, limitInt)
+			query += " LIMIT $" + strconv.Itoa(len(filters)+1)
+			filters = append(filters, limitInt)
 		}
 
 		if offset == "" {
 			offsetInt = 0
-			query += " OFFSET $" + strconv.Itoa(len(params)+1)
-			params = append(params, offsetInt)
+			query += " OFFSET $" + strconv.Itoa(len(filters)+1)
+			filters = append(filters, offsetInt)
 		} else {
-			query += " OFFSET $" + strconv.Itoa(len(params)+1)
-			params = append(params, offsetInt)
+			query += " OFFSET $" + strconv.Itoa(len(filters)+1)
+			filters = append(filters, offsetInt)
 		}
 
 		// TODO: add logic to get product
-		product, err := h.service.GetByParams(query, params)
+		product, err := h.service.GetProductByFilters(query, filters)
 		if err != nil {
 			c.Logger().Error(err.Error())
 			return response.SendStatusInternalServerResponse(c, err.Error())

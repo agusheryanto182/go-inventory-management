@@ -14,9 +14,9 @@ type ProductRepository struct {
 }
 
 // GetByCustomer implements product.RepositoryProductInterface.
-func (r *ProductRepository) GetByCustomer(query string, params []interface{}) ([]*dto.CustomerResponseProducts, error) {
+func (r *ProductRepository) GetByCustomer(query string, filters []interface{}) ([]*dto.CustomerResponseProducts, error) {
 	var products []*dto.CustomerResponseProducts
-	err := r.db.Select(&products, query, params...)
+	err := r.db.Select(&products, query, filters...)
 	if err != nil {
 		return nil, nil
 	}
@@ -123,9 +123,9 @@ func (r *ProductRepository) Delete(ID string) error {
 }
 
 // GetByParams implements product.RepositoryProductInterface.
-func (r *ProductRepository) GetByParams(query string, params []interface{}) ([]*dto.ResponseProducts, error) {
+func (r *ProductRepository) GetProductByFilters(query string, filters []interface{}) ([]*dto.ResponseProducts, error) {
 	var products []*dto.ResponseProducts
-	err := r.db.Select(&products, query, params...)
+	err := r.db.Select(&products, query, filters...)
 	if err != nil {
 		return nil, nil
 	}

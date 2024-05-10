@@ -11,7 +11,7 @@ type StaffRepository struct {
 }
 
 // GetByPhoneNumber implements staff.RepositoryStaffInterface.
-func (r *StaffRepository) GetByPhoneNumber(phoneNumber string) (*entities.Staff, error) {
+func (r *StaffRepository) GetStaffByPhoneNumber(phoneNumber string) (*entities.Staff, error) {
 	staff := &entities.Staff{}
 
 	if err := r.db.Get(staff, "SELECT id, name, password, phone_number FROM staffs WHERE phone_number = $1", phoneNumber); err != nil {
@@ -22,7 +22,7 @@ func (r *StaffRepository) GetByPhoneNumber(phoneNumber string) (*entities.Staff,
 }
 
 // GetByID implements staff.RepositoryStaffInterface.
-func (r *StaffRepository) GetByID(ID string) (*entities.Staff, error) {
+func (r *StaffRepository) GetStaffByID(ID string) (*entities.Staff, error) {
 	staff := &entities.Staff{}
 	if err := r.db.Get(staff, "SELECT id, name, password, phone_number FROM staffs WHERE id = $1", ID); err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (r *StaffRepository) GetByID(ID string) (*entities.Staff, error) {
 }
 
 // IsPhoneNumberExists implements staff.RepositoryStaffInterface.
-func (r *StaffRepository) IsPhoneNumberExists(phoneNumber string) (bool, error) {
+func (r *StaffRepository) IsStaffPhoneNumberExists(phoneNumber string) (bool, error) {
 	var exists bool
 	err := r.db.Get(&exists, "SELECT EXISTS (SELECT 1 FROM staffs WHERE phone_number = $1)", phoneNumber)
 	if err != nil {
@@ -41,7 +41,7 @@ func (r *StaffRepository) IsPhoneNumberExists(phoneNumber string) (bool, error) 
 }
 
 // Register implements staff.RepositoryStaffInterface.
-func (r *StaffRepository) Register(staff *entities.Staff) (*entities.Staff, error) {
+func (r *StaffRepository) StaffRegister(staff *entities.Staff) (*entities.Staff, error) {
 	tx, err := r.db.Beginx()
 	if err != nil {
 		return nil, err

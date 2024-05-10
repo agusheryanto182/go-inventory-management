@@ -14,7 +14,7 @@ type StaffHandler struct {
 }
 
 // Login implements staff.HandlerStaffInterface.
-func (h *StaffHandler) Login() echo.HandlerFunc {
+func (h *StaffHandler) StaffLogin() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		loginRequest := new(dto.StaffLoginReq)
 
@@ -31,14 +31,14 @@ func (h *StaffHandler) Login() echo.HandlerFunc {
 		}
 
 		// TODO: add logic to check if phone number already exist
-		isPhoneNumberExists, _ := h.service.IsPhoneNumberExists(loginRequest.PhoneNumber)
+		isPhoneNumberExists, _ := h.service.IsStaffPhoneNumberExists(loginRequest.PhoneNumber)
 		if !isPhoneNumberExists {
 			c.Logger().Error("user is not found")
 			return response.SendStatusNotFoundResponse(c, "user is not found")
 		}
 
 		// TODO: add logic to login
-		staff, err := h.service.Login(loginRequest)
+		staff, err := h.service.StaffLogin(loginRequest)
 		if err != nil {
 			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
@@ -49,7 +49,7 @@ func (h *StaffHandler) Login() echo.HandlerFunc {
 }
 
 // Register implements staff.HandlerStaffInterface.
-func (h *StaffHandler) Register() echo.HandlerFunc {
+func (h *StaffHandler) StaffRegister() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		registerRequest := new(dto.StaffRegisterReq)
 
@@ -66,14 +66,14 @@ func (h *StaffHandler) Register() echo.HandlerFunc {
 		}
 
 		// TODO: add logic to check if phone number already exist
-		isPhoneNumberExists, _ := h.service.IsPhoneNumberExists(registerRequest.PhoneNumber)
+		isPhoneNumberExists, _ := h.service.IsStaffPhoneNumberExists(registerRequest.PhoneNumber)
 		if isPhoneNumberExists {
 			c.Logger().Error("Phone number already exist")
 			return response.SendStatusConflictResponse(c, "Phone number already exist")
 		}
 
 		// TODO: add logic to register
-		staff, err := h.service.Register(registerRequest)
+		staff, err := h.service.StaffRegister(registerRequest)
 		if err != nil {
 			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())

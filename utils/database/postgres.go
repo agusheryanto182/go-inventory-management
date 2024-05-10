@@ -6,6 +6,7 @@ import (
 	"github.com/agusheryanto182/go-inventory-management/config"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 )
 
 func InitDatabase() (*sqlx.DB, error) {
@@ -19,6 +20,8 @@ func InitDatabase() (*sqlx.DB, error) {
 	)
 
 	db, err := sqlx.Connect("pgx", dsn)
+
+	logrus.Info("connected to database")
 
 	return db, err
 }
