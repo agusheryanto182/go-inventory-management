@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS products(
     image_url TEXT NOT NULL, 
     stock INT NOT NULL,
     notes VARCHAR(200) NOT NULL,
-    price FLOAT NOT NULL,
+    price INT NOT NULL,
     location VARCHAR(200) NOT NULL,
     is_available BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS checkouts(
     customer_id UUID NOT NULL,
     product_id UUID NOT NULL,
     quantity INT NOT NULL,
-    paid FLOAT NOT NULL,
-    change FLOAT NOT NULL,
+    paid INT NOT NULL,
+    change INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 ) WITH (fillfactor=60);
