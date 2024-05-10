@@ -12,3 +12,16 @@ type RequestCreateAndUpdateProduct struct {
 	Location    string `json:"location" validate:"required,min=1,max=200"`
 	IsAvailable bool   `json:"isAvailable"`
 }
+
+type CheckoutProductRequest struct {
+	ID             string
+	CustomerID     string           `json:"customerId" validate:"required"`
+	ProductDetails []ProductDetails `json:"productDetails" validate:"required"`
+	Paid           int              `json:"paid" validate:"required,min=1"`
+	Change         int              `json:"change" validate:"required,min=0"`
+}
+
+type ProductDetails struct {
+	ProductID string `json:"productId" validate:"required"`
+	Quantity  int    `json:"quantity" validate:"required,min=1"`
+}

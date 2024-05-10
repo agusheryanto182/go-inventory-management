@@ -13,6 +13,11 @@ type CustomerService struct {
 	repository customer.RepositoryCustomerInterface
 }
 
+// IsCustomerIdExists implements customer.ServiceCustomerInterface.
+func (s *CustomerService) IsCustomerIdExists(ID string) (bool, error) {
+	return s.repository.IsCustomerIdExists(ID)
+}
+
 // GetCustomerByFilters implements staff.ServiceStaffInterface.
 func (s *CustomerService) GetCustomerByFilters(query string, filters []interface{}) ([]*entities.Customer, error) {
 	return s.repository.GetCustomerByFilters(query, filters)

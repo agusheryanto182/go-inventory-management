@@ -5,13 +5,65 @@ import (
 	"time"
 
 	"github.com/agusheryanto182/go-inventory-management/module/entities"
+	"github.com/agusheryanto182/go-inventory-management/module/feature/customer"
 	"github.com/agusheryanto182/go-inventory-management/module/feature/product"
 	"github.com/agusheryanto182/go-inventory-management/module/feature/product/dto"
 	"github.com/agusheryanto182/go-inventory-management/utils/uuid"
 )
 
 type ProductService struct {
-	productRepo product.RepositoryProductInterface
+	productRepo     product.RepositoryProductInterface
+	customerService customer.ServiceCustomerInterface
+}
+
+// CheckoutProduct implements product.ServiceProductInterface.
+func (s *ProductService) CheckoutProduct(payload *dto.CheckoutProductRequest) error {
+	// TODO: add logic to check customer
+	isCustomerExist, _ := s.customerService.IsCustomerIdExists(payload.CustomerID)
+	if !isCustomerExist {
+		return errors.New("customerId is not found")
+	}
+
+	// TODO: add logic to get products
+	validatePaid := 0
+	for i := 0; i < len(payload.ProductDetails); i++ {
+		productID := payload.ProductDetails[i].ProductID
+		quantity := payload.ProductDetails[i].Quantity
+		product, err := s.productRepo.GetProductByID(productID)
+		if err != nil {
+			return errors.New("product not found")
+		}
+
+		if product.Stock < quantity {
+			return errors.New("stock not enough")
+		}
+
+		validatePaid = validatePaid + (product.Price * quantity)
+	}
+
+	// TODO: add logic to validate paid
+	if payload.Paid < validatePaid {
+		return errors.New("paid is not enough based on all bought product")
+	}
+
+	// TODO: add logic to validate change
+	if payload.Paid > validatePaid {
+		if payload.Change < (payload.Paid-validatePaid) || payload.Change > (payload.Paid-validatePaid) {
+			return errors.New("change is not right, based on all bought product, and what is paid")
+		}
+	}
+
+	// TODO: add logic to checkout product
+	err := s.productRepo.CheckoutProduct(payload)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetHistoryCheckout implements product.ServiceProductInterface.
+func (s *ProductService) GetHistoryCheckout(query string, filters []interface{}) ([]*dto.HistoryCheckoutResponse, error) {
+	return s.productRepo.GetHistoryCheckout(query, filters)
 }
 
 // GetByCustomer implements product.ServiceProductInterface.
@@ -95,8 +147,9 @@ func (s *ProductService) Update(payload *dto.RequestCreateAndUpdateProduct) erro
 	return nil
 }
 
-func NewProductService(productRepo product.RepositoryProductInterface) product.ServiceProductInterface {
+func NewProductService(productRepo product.RepositoryProductInterface, customerService customer.ServiceCustomerInterface) product.ServiceProductInterface {
 	return &ProductService{
-		productRepo: productRepo,
+		productRepo:     productRepo,
+		customerService: customerService,
 	}
 }

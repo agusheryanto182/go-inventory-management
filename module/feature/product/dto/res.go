@@ -32,3 +32,12 @@ type CustomerResponseProducts struct {
 	IsAvailable bool   `json:"-" db:"is_available"`
 	CreatedAt   string `json:"createdAt" db:"created_at"`
 }
+
+type HistoryCheckoutResponse struct {
+	ID             string           `json:"transactionId" db:"id"`
+	CustomerID     string           `json:"customerId" db:"customer_id"`
+	ProductDetails []ProductDetails `json:"productDetails" db:"product_id"`
+	Paid           int              `json:"paid" db:"paid"`
+	Change         int              `json:"change" db:"change"`
+	CreatedAt      string           `json:"createdAt" db:"created_at"`
+}

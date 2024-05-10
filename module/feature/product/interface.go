@@ -14,6 +14,9 @@ type RepositoryProductInterface interface {
 	IsProductExists(ID string) (bool, error)
 	IsSkuExists(sku string) (bool, error)
 	GetByCustomer(query string, filters []interface{}) ([]*dto.CustomerResponseProducts, error)
+	CheckoutProduct(payload *dto.CheckoutProductRequest) error
+	GetHistoryCheckout(query string, filters []interface{}) ([]*dto.HistoryCheckoutResponse, error)
+	GetProductByID(ID string) (*entities.Product, error)
 }
 
 type ServiceProductInterface interface {
@@ -24,6 +27,8 @@ type ServiceProductInterface interface {
 	IsProductExists(ID string) (bool, error)
 	IsSkuExists(sku string) (bool, error)
 	GetByCustomer(query string, filters []interface{}) ([]*dto.CustomerResponseProducts, error)
+	CheckoutProduct(payload *dto.CheckoutProductRequest) error
+	GetHistoryCheckout(query string, filters []interface{}) ([]*dto.HistoryCheckoutResponse, error)
 }
 
 type HandlerProductInterface interface {
@@ -32,4 +37,6 @@ type HandlerProductInterface interface {
 	Update() echo.HandlerFunc
 	Delete() echo.HandlerFunc
 	GetByCustomer() echo.HandlerFunc
+	CheckoutProduct() echo.HandlerFunc
+	GetHistoryCheckout() echo.HandlerFunc
 }

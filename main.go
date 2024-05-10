@@ -37,15 +37,15 @@ func main() {
 	}
 
 	staffRepo := staffRepo.NewStaffRepository(db)
-	staffSvc := staffSvc.NewStaffService(staffRepo, jwtService)
-	staffHandler := staffHandler.NewStaffHandler(staffSvc, valid)
-
 	productRepo := productRepo.NewProductRepository(db)
-	productSvc := productSvc.NewProductService(productRepo)
-	productHandler := productHandler.NewProductHandler(productSvc, valid)
-
 	customerRepo := customerRepo.NewCustomerRepository(db)
+
+	staffSvc := staffSvc.NewStaffService(staffRepo, jwtService)
 	customerSvc := customerSvc.NewCustomerService(customerRepo)
+	productSvc := productSvc.NewProductService(productRepo, customerSvc)
+
+	productHandler := productHandler.NewProductHandler(productSvc, valid)
+	staffHandler := staffHandler.NewStaffHandler(staffSvc, valid)
 	customerHandler := customerHandler.NewCustomerHandler(customerSvc, valid)
 
 	e.Pre(middleware.RemoveTrailingSlash())

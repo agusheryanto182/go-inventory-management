@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/agusheryanto182/go-inventory-management/module/entities"
+	"github.com/agusheryanto182/go-inventory-management/module/feature/customer"
 	"github.com/agusheryanto182/go-inventory-management/module/feature/product"
 	"github.com/agusheryanto182/go-inventory-management/module/feature/product/dto"
 	"github.com/agusheryanto182/go-inventory-management/utils/response"
@@ -13,8 +14,111 @@ import (
 )
 
 type ProductHandler struct {
-	service   product.ServiceProductInterface
-	validator *validator.Validate
+	service         product.ServiceProductInterface
+	customerService customer.ServiceCustomerInterface
+	validator       *validator.Validate
+}
+
+// CheckoutProduct implements product.HandlerProductInterface.
+func (h *ProductHandler) CheckoutProduct() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// TODO: add logic to get current user
+		currentStaff := c.Get("CurrentStaff").(*entities.Staff)
+		if currentStaff == nil {
+			c.Logger().Error("unauthorized: missing token or invalid token")
+			return response.SendStatusUnauthorizedResponse(c, "unauthorized: missing token or invalid token")
+		}
+
+		// TODO: add logic to get payload
+		payload := new(dto.CheckoutProductRequest)
+		if err := c.Bind(&payload); err != nil {
+			c.Logger().Error(err.Error())
+			return response.SendBadRequestResponse(c, err.Error())
+		}
+
+		// TODO: add logic to validate payload
+		if err := h.validator.Struct(payload); err != nil {
+			c.Logger().Error(err.Error())
+			return response.SendBadRequestResponse(c, err.Error())
+		}
+
+		// TODO: add logic to checkout product
+		if err := h.service.CheckoutProduct(payload); err != nil {
+			switch err.Error() {
+			case "customerId is not found":
+				c.Logger().Error(err.Error())
+				return response.SendStatusNotFoundResponse(c, err.Error())
+			case "stock not enough":
+				c.Logger().Error(err.Error())
+				return response.SendBadRequestResponse(c, err.Error())
+			case "product not found":
+				c.Logger().Error(err.Error())
+				return response.SendStatusNotFoundResponse(c, err.Error())
+			default:
+				c.Logger().Error(err.Error())
+				return response.SendBadRequestResponse(c, err.Error())
+			}
+		}
+
+		// TODO: add logic to return response
+		return response.SendStatusOkResponse(c, "success checkout product")
+	}
+}
+
+// GetHistoryCheckout implements product.HandlerProductInterface.
+func (h *ProductHandler) GetHistoryCheckout() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// TODO: add logic to get current user
+		currentStaff := c.Get("CurrentStaff").(*entities.Staff)
+		if currentStaff == nil {
+			c.Logger().Error("unauthorized: missing token or invalid token")
+			return response.SendStatusUnauthorizedResponse(c, "unauthorized: missing token or invalid token")
+		}
+
+		// TODO: add logic to define query and filters
+		query := "SELECT id, customer_id, product_id, quantity, paid, change, to_char(created_at AT TIME ZONE 'ASIA/JAKARTA', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS created_at FROM checkouts WHERE 1=1"
+		filters := make([]interface{}, 0)
+
+		// TODO: add logic to get params customer id
+		customerIdCleaned := strings.ReplaceAll(c.QueryParam("customerId"), "\"", "")
+		if customerIdCleaned != "" {
+			query += " AND customer_id = $" + strconv.Itoa(len(filters)+1)
+			filters = append(filters, customerIdCleaned)
+		}
+
+		// TODO: add logic to get params createdAt
+		createdAtCleaned := strings.ReplaceAll(c.QueryParam("createdAt"), "\"", "")
+		if createdAtCleaned != "" {
+			if createdAtCleaned == "asc" || createdAtCleaned == "desc" {
+				query += " ORDER BY created_at " + createdAtCleaned
+			}
+		}
+
+		// TODO: add logic to limit and offset
+		limit, _ := strconv.Atoi(c.QueryParam("limit"))
+		offset, _ := strconv.Atoi(c.QueryParam("offset"))
+
+		if limit != 0 && offset != 0 {
+			query += " LIMIT $" + strconv.Itoa(len(filters)+1) + " OFFSET $" + strconv.Itoa(len(filters)+2)
+			filters = append(filters, limit)
+			filters = append(filters, offset)
+		} else {
+			query += " LIMIT 5 OFFSET 0"
+		}
+
+		// TODO: add logic to get history checkout
+		histories, err := h.service.GetHistoryCheckout(query, filters)
+		if err != nil {
+			c.Logger().Error(err.Error())
+			return response.SendBadRequestResponse(c, err.Error())
+		}
+
+		if len(histories) == 0 {
+			return response.SendStatusOkWithDataResponse(c, "Success get history checkout", &dto.HistoryCheckoutResponse{})
+		}
+
+		return response.SendStatusOkWithDataResponse(c, "Success get history checkout", histories)
+	}
 }
 
 // GetByCustomer implements product.HandlerProductInterface.

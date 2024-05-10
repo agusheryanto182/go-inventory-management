@@ -11,6 +11,7 @@ type RepositoryCustomerInterface interface {
 	GetCustomerByID(ID string) (*entities.Customer, error)
 	IsCustomerPhoneNumberExists(phoneNumber string) (bool, error)
 	GetCustomerByFilters(query string, filters []interface{}) ([]*entities.Customer, error)
+	IsCustomerIdExists(ID string) (bool, error)
 }
 
 type ServiceCustomerInterface interface {
@@ -18,6 +19,7 @@ type ServiceCustomerInterface interface {
 	CustomerRegister(payload *dto.CustomerRegisterReq) (*entities.Customer, error)
 	IsCustomerPhoneNumberExists(phoneNumber string) (bool, error)
 	GetCustomerByFilters(query string, filters []interface{}) ([]*entities.Customer, error)
+	IsCustomerIdExists(ID string) (bool, error)
 }
 
 type HandlerCustomerInterface interface {

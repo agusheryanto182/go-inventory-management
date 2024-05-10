@@ -23,6 +23,8 @@ func RouteProduct(e *echo.Echo, h product.HandlerProductInterface, jwtService jw
 	productGroup.DELETE("/:id", h.Delete(), middlewares.AuthMiddleware(jwtService, staffService))
 
 	productGroup.GET("/customer", h.GetByCustomer())
+	productGroup.POST("/checkout", h.CheckoutProduct(), middlewares.AuthMiddleware(jwtService, staffService))
+	productGroup.GET("/checkout/history", h.GetHistoryCheckout(), middlewares.AuthMiddleware(jwtService, staffService))
 }
 
 func RouteCustomer(e *echo.Echo, h customer.HandlerCustomerInterface, jwtService jwt.JWTInterface, staffService staff.ServiceStaffInterface) {

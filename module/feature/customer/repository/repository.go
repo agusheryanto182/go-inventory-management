@@ -12,6 +12,17 @@ type CustomerRepository struct {
 	db *sqlx.DB
 }
 
+// IsCustomerIdExists implements customer.RepositoryCustomerInterface.
+func (r *CustomerRepository) IsCustomerIdExists(ID string) (bool, error) {
+	var exist bool
+
+	if err := r.db.Get(&exist, "SELECT EXISTS (SELECT 1 FROM customers WHERE id = $1)", ID); err != nil {
+		return false, err
+	}
+
+	return exist, nil
+}
+
 // IsCustomerPhoneNumberExists implements customer.RepositoryCustomerInterface.
 func (r *CustomerRepository) IsCustomerPhoneNumberExists(phoneNumber string) (bool, error) {
 	var exists bool

@@ -6,11 +6,86 @@ import (
 	"github.com/agusheryanto182/go-inventory-management/module/entities"
 	"github.com/agusheryanto182/go-inventory-management/module/feature/product"
 	"github.com/agusheryanto182/go-inventory-management/module/feature/product/dto"
+	"github.com/agusheryanto182/go-inventory-management/utils/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
 type ProductRepository struct {
 	db *sqlx.DB
+}
+
+// GetProductByID implements product.RepositoryProductInterface.
+func (r *ProductRepository) GetProductByID(ID string) (*entities.Product, error) {
+	product := &entities.Product{}
+	err := r.db.Get(product, "SELECT * FROM products WHERE id = $1 AND is_available = true", ID)
+	if err != nil {
+		return nil, errors.New("product not found")
+	}
+	return product, nil
+}
+
+// CheckoutProduct implements product.RepositoryProductInterface.
+func (r *ProductRepository) CheckoutProduct(payload *dto.CheckoutProductRequest) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	stmt, err := tx.Preparex("UPDATE products SET stock = stock - $1 WHERE id = $2 AND is_available = true")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	stmtCheckout, err := tx.Preparex("INSERT INTO checkouts (id, customer_id, product_id, quantity, paid, change) VALUES ($1, $2, $3, $4, $5, $6)")
+	if err != nil {
+		return err
+	}
+	defer stmtCheckout.Close()
+
+	UUIDs := make([]string, len(payload.ProductDetails))
+	for i := 0; i < len(payload.ProductDetails); i++ {
+		UUID, err := uuid.GenerateUUID()
+		if err != nil {
+			return err
+		}
+		UUIDs[i] = UUID
+	}
+
+	for i := 0; i < len(payload.ProductDetails); i++ {
+		productID := payload.ProductDetails[i].ProductID
+		quantity := payload.ProductDetails[i].Quantity
+
+		_, err = stmt.Exec(quantity, productID)
+		if err != nil {
+			return err
+		}
+
+		_, err = stmtCheckout.Exec(UUIDs[i], payload.CustomerID, productID, quantity, payload.Paid, payload.Change)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// GetHistoryCheckout implements product.RepositoryProductInterface.
+func (r *ProductRepository) GetHistoryCheckout(query string, filters []interface{}) ([]*dto.HistoryCheckoutResponse, error) {
+	histories := []*dto.HistoryCheckoutResponse{}
+
+	err := r.db.Select(&histories, query, filters...)
+	if err != nil {
+		return nil, err
+	}
+	return histories, nil
 }
 
 // GetByCustomer implements product.RepositoryProductInterface.
