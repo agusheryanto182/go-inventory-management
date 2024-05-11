@@ -8,6 +8,7 @@ import (
 	"github.com/agusheryanto182/go-inventory-management/module/feature/customer"
 	"github.com/agusheryanto182/go-inventory-management/module/feature/product"
 	"github.com/agusheryanto182/go-inventory-management/module/feature/product/dto"
+	"github.com/agusheryanto182/go-inventory-management/utils/helper"
 	"github.com/agusheryanto182/go-inventory-management/utils/response"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -40,6 +41,18 @@ func (h *ProductHandler) CheckoutProduct() echo.HandlerFunc {
 		if err := h.validator.Struct(payload); err != nil {
 			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
+		}
+
+		if payload.Change == nil {
+			c.Logger().Error("change cannot be nil")
+			return response.SendBadRequestResponse(c, "change cannot be nil")
+		}
+
+		for i := 0; i < len(payload.ProductDetails); i++ {
+			if err := h.validator.Struct(payload.ProductDetails[i]); err != nil {
+				c.Logger().Error(err.Error())
+				return response.SendBadRequestResponse(c, err.Error())
+			}
 		}
 
 		// TODO: add logic to checkout product
@@ -76,7 +89,7 @@ func (h *ProductHandler) GetHistoryCheckout() echo.HandlerFunc {
 		}
 
 		// TODO: add logic to define query and filters
-		query := "SELECT id, customer_id, product_id, quantity, paid, change, to_char(created_at AT TIME ZONE 'ASIA/JAKARTA', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS created_at FROM checkouts WHERE 1=1"
+		query := "SELECT * FROM checkouts WHERE 1=1"
 		filters := make([]interface{}, 0)
 
 		// TODO: add logic to get params customer id
@@ -92,18 +105,26 @@ func (h *ProductHandler) GetHistoryCheckout() echo.HandlerFunc {
 			if createdAtCleaned == "asc" || createdAtCleaned == "desc" {
 				query += " ORDER BY created_at " + createdAtCleaned
 			}
+		} else {
+			query += " ORDER BY created_at DESC"
 		}
 
 		// TODO: add logic to limit and offset
 		limit, _ := strconv.Atoi(c.QueryParam("limit"))
 		offset, _ := strconv.Atoi(c.QueryParam("offset"))
 
-		if limit != 0 && offset != 0 {
-			query += " LIMIT $" + strconv.Itoa(len(filters)+1) + " OFFSET $" + strconv.Itoa(len(filters)+2)
+		if limit != 0 {
+			query += " LIMIT $" + strconv.Itoa(len(filters)+1)
 			filters = append(filters, limit)
+		} else {
+			query += " LIMIT 5"
+		}
+
+		if offset != 0 {
+			query += " OFFSET $" + strconv.Itoa(len(filters)+1)
 			filters = append(filters, offset)
 		} else {
-			query += " LIMIT 5 OFFSET 0"
+			query += " OFFSET 0"
 		}
 
 		// TODO: add logic to get history checkout
@@ -114,7 +135,7 @@ func (h *ProductHandler) GetHistoryCheckout() echo.HandlerFunc {
 		}
 
 		if len(histories) == 0 {
-			return response.SendStatusOkWithDataResponse(c, "Success get history checkout", &dto.HistoryCheckoutResponse{})
+			return response.SendStatusOkWithDataResponse(c, "Success get history checkout", []entities.Checkout{})
 		}
 
 		return response.SendStatusOkWithDataResponse(c, "Success get history checkout", histories)
@@ -124,7 +145,7 @@ func (h *ProductHandler) GetHistoryCheckout() echo.HandlerFunc {
 // GetByCustomer implements product.HandlerProductInterface.
 func (h *ProductHandler) GetByCustomer() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		query := "SELECT id, name, sku, category, image_url, notes, price, stock, location, is_available, to_char(created_at AT TIME ZONE 'ASIA/JAKARTA', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS created_at FROM products WHERE 1=1 AND is_available = true"
+		query := "SELECT * FROM products WHERE 1=1 AND is_available = true"
 		filters := make([]interface{}, 0)
 
 		// TODO: add logic to limit and offset
@@ -235,6 +256,21 @@ func (h *ProductHandler) Create() echo.HandlerFunc {
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
+		if product.Stock == nil {
+			c.Logger().Error("stock cannot be empty")
+			return response.SendBadRequestResponse(c, "stock cannot be empty")
+		}
+
+		if product.IsAvailable == nil {
+			c.Logger().Error("isAvailable cannot be empty")
+			return response.SendBadRequestResponse(c, "isAvailable cannot be empty")
+		}
+
+		if !helper.IsValidURL(product.ImageURL) {
+			c.Logger().Error("invalid image url")
+			return response.SendBadRequestResponse(c, "invalid image url")
+		}
+
 		// TODO: add logic to create product
 		createdProduct, err := h.service.Create(product)
 		if err != nil {
@@ -286,16 +322,12 @@ func (h *ProductHandler) GetProductByFilters() echo.HandlerFunc {
 			return response.SendStatusUnauthorizedResponse(c, "unauthorized: missing token or invalid token")
 		}
 
-		query := "SELECT id, name, sku, category, image_url, notes, price, stock, location, is_available, to_char(created_at AT TIME ZONE 'ASIA/JAKARTA', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS created_at FROM products WHERE 1=1"
+		query := "SELECT * FROM products WHERE 1=1"
 		filters := make([]interface{}, 0)
 
 		// TODO: add logic to get id
 		idClean := strings.ReplaceAll(c.QueryParam("id"), "\"", "")
 		if idClean != "" {
-			// isExist, _ := h.service.IsProductExists(idClean)
-			// if !isExist {
-			// 	return response.SendStatusOkWithDataResponse(c, "Success", &[]dto.ResponseProducts{})
-			// }
 			query += " AND id = $" + strconv.Itoa(len(filters)+1)
 			filters = append(filters, idClean)
 		}
@@ -332,10 +364,6 @@ func (h *ProductHandler) GetProductByFilters() echo.HandlerFunc {
 		// TODO: add logic to get sku param
 		skuClean := strings.ReplaceAll(c.QueryParam("sku"), "\"", "")
 		if skuClean != "" {
-			// isExist, _ := h.service.IsSkuExists(sku)
-			// if !isExist {
-			// 	return response.SendStatusOkWithDataResponse(c, "Success", &[]dto.ResponseProducts{})
-			// }
 			query += " AND sku = $" + strconv.Itoa(len(filters)+1)
 			filters = append(filters, skuClean)
 		}
@@ -433,6 +461,21 @@ func (h *ProductHandler) Update() echo.HandlerFunc {
 		if err := h.validator.Struct(updateRequest); err != nil {
 			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
+		}
+
+		if updateRequest.IsAvailable == nil {
+			c.Logger().Error("IsAvailable is required")
+			return response.SendBadRequestResponse(c, "IsAvailable is required")
+		}
+
+		if updateRequest.Stock == nil {
+			c.Logger().Error("Stock is required")
+			return response.SendBadRequestResponse(c, "Stock is required")
+		}
+
+		if !helper.IsValidURL(updateRequest.ImageURL) {
+			c.Logger().Error("invalid image url")
+			return response.SendBadRequestResponse(c, "invalid image url")
 		}
 
 		updateRequest.ID = id

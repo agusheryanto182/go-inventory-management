@@ -78,8 +78,8 @@ func (r *ProductRepository) CheckoutProduct(payload *dto.CheckoutProductRequest)
 }
 
 // GetHistoryCheckout implements product.RepositoryProductInterface.
-func (r *ProductRepository) GetHistoryCheckout(query string, filters []interface{}) ([]*dto.HistoryCheckoutResponse, error) {
-	histories := []*dto.HistoryCheckoutResponse{}
+func (r *ProductRepository) GetHistoryCheckout(query string, filters []interface{}) ([]*entities.Checkout, error) {
+	histories := []*entities.Checkout{}
 
 	err := r.db.Select(&histories, query, filters...)
 	if err != nil {
@@ -89,8 +89,8 @@ func (r *ProductRepository) GetHistoryCheckout(query string, filters []interface
 }
 
 // GetByCustomer implements product.RepositoryProductInterface.
-func (r *ProductRepository) GetByCustomer(query string, filters []interface{}) ([]*dto.CustomerResponseProducts, error) {
-	var products []*dto.CustomerResponseProducts
+func (r *ProductRepository) GetByCustomer(query string, filters []interface{}) ([]*entities.Product, error) {
+	var products []*entities.Product
 	err := r.db.Select(&products, query, filters...)
 	if err != nil {
 		return nil, nil
@@ -198,8 +198,8 @@ func (r *ProductRepository) Delete(ID string) error {
 }
 
 // GetByParams implements product.RepositoryProductInterface.
-func (r *ProductRepository) GetProductByFilters(query string, filters []interface{}) ([]*dto.ResponseProducts, error) {
-	var products []*dto.ResponseProducts
+func (r *ProductRepository) GetProductByFilters(query string, filters []interface{}) ([]*entities.Product, error) {
+	var products []*entities.Product
 	err := r.db.Select(&products, query, filters...)
 	if err != nil {
 		return nil, nil

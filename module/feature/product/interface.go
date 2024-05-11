@@ -8,14 +8,14 @@ import (
 
 type RepositoryProductInterface interface {
 	Create(product *entities.Product) (*entities.Product, error)
-	GetProductByFilters(query string, filters []interface{}) ([]*dto.ResponseProducts, error)
+	GetProductByFilters(query string, filters []interface{}) ([]*entities.Product, error)
 	Update(product *entities.Product) error
 	Delete(ID string) error
 	IsProductExists(ID string) (bool, error)
 	IsSkuExists(sku string) (bool, error)
-	GetByCustomer(query string, filters []interface{}) ([]*dto.CustomerResponseProducts, error)
+	GetByCustomer(query string, filters []interface{}) ([]*entities.Product, error)
 	CheckoutProduct(payload *dto.CheckoutProductRequest) error
-	GetHistoryCheckout(query string, filters []interface{}) ([]*dto.HistoryCheckoutResponse, error)
+	GetHistoryCheckout(query string, filters []interface{}) ([]*entities.Checkout, error)
 	GetProductByID(ID string) (*entities.Product, error)
 }
 

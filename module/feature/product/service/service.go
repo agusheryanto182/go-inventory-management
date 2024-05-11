@@ -25,7 +25,7 @@ func (s *ProductService) CheckoutProduct(payload *dto.CheckoutProductRequest) er
 	}
 
 	// TODO: add logic to get products
-	validatePaid := 0
+	var validatePaid int
 	for i := 0; i < len(payload.ProductDetails); i++ {
 		productID := payload.ProductDetails[i].ProductID
 		quantity := payload.ProductDetails[i].Quantity
@@ -48,7 +48,13 @@ func (s *ProductService) CheckoutProduct(payload *dto.CheckoutProductRequest) er
 
 	// TODO: add logic to validate change
 	if payload.Paid > validatePaid {
-		if payload.Change < (payload.Paid-validatePaid) || payload.Change > (payload.Paid-validatePaid) {
+		if *payload.Change < (payload.Paid-validatePaid) || *payload.Change > (payload.Paid-validatePaid) {
+			return errors.New("change is not right, based on all bought product, and what is paid")
+		}
+	}
+
+	if payload.Paid == validatePaid {
+		if *payload.Change != 0 {
 			return errors.New("change is not right, based on all bought product, and what is paid")
 		}
 	}
@@ -63,12 +69,55 @@ func (s *ProductService) CheckoutProduct(payload *dto.CheckoutProductRequest) er
 
 // GetHistoryCheckout implements product.ServiceProductInterface.
 func (s *ProductService) GetHistoryCheckout(query string, filters []interface{}) ([]*dto.HistoryCheckoutResponse, error) {
-	return s.productRepo.GetHistoryCheckout(query, filters)
+	result, err := s.productRepo.GetHistoryCheckout(query, filters)
+	if err != nil {
+		return nil, err
+	}
+
+	histories := make([]*dto.HistoryCheckoutResponse, len(result))
+
+	for i := 0; i < len(result); i++ {
+		histories[i] = &dto.HistoryCheckoutResponse{
+			ID:         result[i].ID,
+			CustomerID: result[i].CustomerID,
+			Paid:       result[i].Paid,
+			Change:     result[i].Change,
+			CreatedAt:  result[i].CreatedAt.Format(time.RFC3339),
+		}
+
+		var productDetail dto.ProductDetails
+		productDetail.ProductID = result[i].ProductID
+		productDetail.Quantity = result[i].Quantity
+
+		histories[i].ProductDetails = append(histories[i].ProductDetails, productDetail)
+	}
+
+	return histories, nil
 }
 
 // GetByCustomer implements product.ServiceProductInterface.
 func (s *ProductService) GetByCustomer(query string, filters []interface{}) ([]*dto.CustomerResponseProducts, error) {
-	return s.productRepo.GetByCustomer(query, filters)
+	result, err := s.productRepo.GetByCustomer(query, filters)
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]*dto.CustomerResponseProducts, len(result))
+
+	for i := 0; i < len(result); i++ {
+		responses[i] = &dto.CustomerResponseProducts{
+			ID:        result[i].ID,
+			Name:      result[i].Name,
+			Sku:       result[i].Sku,
+			Category:  result[i].Category,
+			ImageURL:  result[i].ImageURL,
+			Stock:     result[i].Stock,
+			Price:     result[i].Price,
+			Location:  result[i].Location,
+			CreatedAt: result[i].CreatedAt.Format(time.RFC3339),
+		}
+	}
+	return responses, nil
 }
 
 // IsSkuExists implements product.ServiceProductInterface.
@@ -98,9 +147,9 @@ func (s *ProductService) Create(payload *dto.RequestCreateAndUpdateProduct) (*dt
 		ImageURL:    payload.ImageURL,
 		Notes:       payload.Notes,
 		Price:       payload.Price,
-		Stock:       payload.Stock,
+		Stock:       *payload.Stock,
 		Location:    payload.Location,
-		IsAvailable: payload.IsAvailable,
+		IsAvailable: *payload.IsAvailable,
 	}
 
 	// TODO: add logic to create product
@@ -121,7 +170,28 @@ func (s *ProductService) Delete(ID string) error {
 
 // GetByParams implements product.ServiceProductInterface.
 func (s *ProductService) GetProductByFilters(query string, filters []interface{}) ([]*dto.ResponseProducts, error) {
-	return s.productRepo.GetProductByFilters(query, filters)
+	result, err := s.productRepo.GetProductByFilters(query, filters)
+	if err != nil {
+		return nil, err
+	}
+
+	response := make([]*dto.ResponseProducts, len(result))
+	for i := 0; i < len(result); i++ {
+		response[i] = &dto.ResponseProducts{
+			ID:          result[i].ID,
+			Name:        result[i].Name,
+			Sku:         result[i].Sku,
+			Category:    result[i].Category,
+			ImageURL:    result[i].ImageURL,
+			Stock:       result[i].Stock,
+			Notes:       result[i].Notes,
+			Price:       result[i].Price,
+			Location:    result[i].Location,
+			IsAvailable: result[i].IsAvailable,
+			CreatedAt:   result[i].CreatedAt.Format(time.RFC3339),
+		}
+	}
+	return response, nil
 }
 
 // Update implements product.ServiceProductInterface.
@@ -135,9 +205,9 @@ func (s *ProductService) Update(payload *dto.RequestCreateAndUpdateProduct) erro
 		ImageURL:    payload.ImageURL,
 		Notes:       payload.Notes,
 		Price:       payload.Price,
-		Stock:       payload.Stock,
+		Stock:       *payload.Stock,
 		Location:    payload.Location,
-		IsAvailable: payload.IsAvailable,
+		IsAvailable: *payload.IsAvailable,
 	}
 
 	if err := s.productRepo.Update(product); err != nil {
