@@ -34,7 +34,7 @@ func (s *ProductService) CheckoutProduct(payload *dto.CheckoutProductRequest) er
 			return errors.New("product not found")
 		}
 
-		if product.Stock < quantity {
+		if product.Stock < quantity || product.Stock-quantity < 0 || product.Stock == 0 {
 			return errors.New("stock not enough")
 		}
 
@@ -77,6 +77,8 @@ func (s *ProductService) GetHistoryCheckout(query string, filters []interface{})
 	histories := make([]*dto.HistoryCheckoutResponse, len(result))
 
 	for i := 0; i < len(result); i++ {
+		checkoutItems, _ := s.productRepo.GetCheckoutItemByCheckoutID(result[i].ID)
+
 		histories[i] = &dto.HistoryCheckoutResponse{
 			ID:         result[i].ID,
 			CustomerID: result[i].CustomerID,
@@ -84,12 +86,12 @@ func (s *ProductService) GetHistoryCheckout(query string, filters []interface{})
 			Change:     result[i].Change,
 			CreatedAt:  result[i].CreatedAt.Format(time.RFC3339),
 		}
-
-		var productDetail dto.ProductDetails
-		productDetail.ProductID = result[i].ProductID
-		productDetail.Quantity = result[i].Quantity
-
-		histories[i].ProductDetails = append(histories[i].ProductDetails, productDetail)
+		for j := 0; j < len(checkoutItems); j++ {
+			histories[i].ProductDetails = append(histories[i].ProductDetails, dto.ProductDetails{
+				ProductID: checkoutItems[j].ProductID,
+				Quantity:  checkoutItems[j].Quantity,
+			})
+		}
 	}
 
 	return histories, nil

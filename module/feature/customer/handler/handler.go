@@ -29,27 +29,23 @@ func (h *CustomerHandler) CustomerRegister() echo.HandlerFunc {
 		// TODO: add logic to bind request
 		customer := new(dto.CustomerRegisterReq)
 		if err := c.Bind(&customer); err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
 		// TODO: add validation
 		if err := h.validator.Struct(customer); err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
 		// TODO: add logic to check if phone number already exist
 		isPhoneNumberExists, _ := h.service.IsCustomerPhoneNumberExists(customer.PhoneNumber)
 		if isPhoneNumberExists {
-			c.Logger().Error("phone number already exist")
 			return response.SendStatusConflictResponse(c, "phone number already exist")
 		}
 
 		// TODO: add logic to create customer
 		createdCustomer, err := h.service.CustomerRegister(customer)
 		if err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
@@ -87,7 +83,6 @@ func (h *CustomerHandler) GetCustomer() echo.HandlerFunc {
 		// TODO: add logic to get customers
 		customers, err := h.service.GetCustomerByFilters(query, filters)
 		if err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 

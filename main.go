@@ -18,6 +18,7 @@ import (
 	middlewares "github.com/agusheryanto182/go-inventory-management/module/middleware"
 	"github.com/agusheryanto182/go-inventory-management/routes"
 	"github.com/agusheryanto182/go-inventory-management/utils/database"
+	"github.com/agusheryanto182/go-inventory-management/utils/helper"
 	"github.com/agusheryanto182/go-inventory-management/utils/jwt"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -35,6 +36,9 @@ func main() {
 	if err != nil {
 		e.Logger.Fatal(err)
 	}
+
+	valid.RegisterValidation("validatePhoneNumber", helper.IsValidPhoneNumber)
+	valid.RegisterValidation("validateImageURL", helper.ValidateURL)
 
 	staffRepo := staffRepo.NewStaffRepository(db)
 	productRepo := productRepo.NewProductRepository(db)

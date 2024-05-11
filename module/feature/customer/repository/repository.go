@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"fmt"
-
 	"github.com/agusheryanto182/go-inventory-management/module/entities"
 	"github.com/agusheryanto182/go-inventory-management/module/feature/customer"
 	"github.com/jmoiron/sqlx"
@@ -35,8 +33,6 @@ func (r *CustomerRepository) IsCustomerPhoneNumberExists(phoneNumber string) (bo
 
 // GetCustomerByFilters implements staff.RepositoryStaffInterface.
 func (r *CustomerRepository) GetCustomerByFilters(query string, filters []interface{}) ([]*entities.Customer, error) {
-	fmt.Println(query)
-	fmt.Println(filters)
 	customers := []*entities.Customer{}
 
 	if err := r.db.Select(&customers, query, filters...); err != nil {

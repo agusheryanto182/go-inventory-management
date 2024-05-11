@@ -7,6 +7,6 @@ import (
 
 func ConfigureLogging() echo.MiddlewareFunc {
 	return middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "method=${method}, uri=${uri}, status=${status}, time=${time_rfc3339}\n\n",
+		Format: "method=${method}, uri=${uri}, status=${status}, speed=${latency_human}\n\n",
 	})
 }

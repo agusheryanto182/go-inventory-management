@@ -8,7 +8,6 @@ import (
 	"github.com/agusheryanto182/go-inventory-management/module/feature/customer"
 	"github.com/agusheryanto182/go-inventory-management/module/feature/product"
 	"github.com/agusheryanto182/go-inventory-management/module/feature/product/dto"
-	"github.com/agusheryanto182/go-inventory-management/utils/helper"
 	"github.com/agusheryanto182/go-inventory-management/utils/response"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -26,31 +25,26 @@ func (h *ProductHandler) CheckoutProduct() echo.HandlerFunc {
 		// TODO: add logic to get current user
 		currentStaff := c.Get("CurrentStaff").(*entities.Staff)
 		if currentStaff == nil {
-			c.Logger().Error("unauthorized: missing token or invalid token")
 			return response.SendStatusUnauthorizedResponse(c, "unauthorized: missing token or invalid token")
 		}
 
 		// TODO: add logic to get payload
 		payload := new(dto.CheckoutProductRequest)
 		if err := c.Bind(&payload); err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
 		// TODO: add logic to validate payload
 		if err := h.validator.Struct(payload); err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
 		if payload.Change == nil {
-			c.Logger().Error("change cannot be nil")
 			return response.SendBadRequestResponse(c, "change cannot be nil")
 		}
 
 		for i := 0; i < len(payload.ProductDetails); i++ {
 			if err := h.validator.Struct(payload.ProductDetails[i]); err != nil {
-				c.Logger().Error(err.Error())
 				return response.SendBadRequestResponse(c, err.Error())
 			}
 		}
@@ -59,16 +53,12 @@ func (h *ProductHandler) CheckoutProduct() echo.HandlerFunc {
 		if err := h.service.CheckoutProduct(payload); err != nil {
 			switch err.Error() {
 			case "customerId is not found":
-				c.Logger().Error(err.Error())
 				return response.SendStatusNotFoundResponse(c, err.Error())
 			case "stock not enough":
-				c.Logger().Error(err.Error())
 				return response.SendBadRequestResponse(c, err.Error())
 			case "product not found":
-				c.Logger().Error(err.Error())
 				return response.SendStatusNotFoundResponse(c, err.Error())
 			default:
-				c.Logger().Error(err.Error())
 				return response.SendBadRequestResponse(c, err.Error())
 			}
 		}
@@ -84,7 +74,6 @@ func (h *ProductHandler) GetHistoryCheckout() echo.HandlerFunc {
 		// TODO: add logic to get current user
 		currentStaff := c.Get("CurrentStaff").(*entities.Staff)
 		if currentStaff == nil {
-			c.Logger().Error("unauthorized: missing token or invalid token")
 			return response.SendStatusUnauthorizedResponse(c, "unauthorized: missing token or invalid token")
 		}
 
@@ -122,7 +111,7 @@ func (h *ProductHandler) GetHistoryCheckout() echo.HandlerFunc {
 
 		if offset != 0 {
 			query += " OFFSET $" + strconv.Itoa(len(filters)+1)
-			filters = append(filters, offset)
+			filters = append(filters, offset+1)
 		} else {
 			query += " OFFSET 0"
 		}
@@ -130,7 +119,6 @@ func (h *ProductHandler) GetHistoryCheckout() echo.HandlerFunc {
 		// TODO: add logic to get history checkout
 		histories, err := h.service.GetHistoryCheckout(query, filters)
 		if err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
@@ -222,7 +210,6 @@ func (h *ProductHandler) GetByCustomer() echo.HandlerFunc {
 		// TODO: add logic to get product
 		product, err := h.service.GetByCustomer(query, filters)
 		if err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendStatusInternalServerResponse(c, err.Error())
 		}
 
@@ -246,35 +233,17 @@ func (h *ProductHandler) Create() echo.HandlerFunc {
 		// TODO: add logic to bind request
 		product := new(dto.RequestCreateAndUpdateProduct)
 		if err := c.Bind(&product); err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
 		// TODO: add validation
 		if err := h.validator.Struct(product); err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
-		}
-
-		if product.Stock == nil {
-			c.Logger().Error("stock cannot be empty")
-			return response.SendBadRequestResponse(c, "stock cannot be empty")
-		}
-
-		if product.IsAvailable == nil {
-			c.Logger().Error("isAvailable cannot be empty")
-			return response.SendBadRequestResponse(c, "isAvailable cannot be empty")
-		}
-
-		if !helper.IsValidURL(product.ImageURL) {
-			c.Logger().Error("invalid image url")
-			return response.SendBadRequestResponse(c, "invalid image url")
 		}
 
 		// TODO: add logic to create product
 		createdProduct, err := h.service.Create(product)
 		if err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
@@ -298,13 +267,11 @@ func (h *ProductHandler) Delete() echo.HandlerFunc {
 		// TODO: add logic to check product
 		isExist, _ := h.service.IsProductExists(id)
 		if !isExist {
-			c.Logger().Error("Product not found")
 			return response.SendStatusNotFoundResponse(c, "Product not found")
 		}
 
 		// TODO: add logic to delete product
 		if err := h.service.Delete(id); err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
@@ -419,7 +386,6 @@ func (h *ProductHandler) GetProductByFilters() echo.HandlerFunc {
 		// TODO: add logic to get product
 		product, err := h.service.GetProductByFilters(query, filters)
 		if err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendStatusInternalServerResponse(c, err.Error())
 		}
 
@@ -446,43 +412,24 @@ func (h *ProductHandler) Update() echo.HandlerFunc {
 		// TODO: add logic to check product
 		isExist, _ := h.service.IsProductExists(id)
 		if !isExist {
-			c.Logger().Error("Product not found")
 			return response.SendStatusNotFoundResponse(c, "Product not found")
 		}
 
 		// TODO: add logic to bind request
 		updateRequest := new(dto.RequestCreateAndUpdateProduct)
 		if err := c.Bind(&updateRequest); err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
 		// TODO: add validation
 		if err := h.validator.Struct(updateRequest); err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
-		}
-
-		if updateRequest.IsAvailable == nil {
-			c.Logger().Error("IsAvailable is required")
-			return response.SendBadRequestResponse(c, "IsAvailable is required")
-		}
-
-		if updateRequest.Stock == nil {
-			c.Logger().Error("Stock is required")
-			return response.SendBadRequestResponse(c, "Stock is required")
-		}
-
-		if !helper.IsValidURL(updateRequest.ImageURL) {
-			c.Logger().Error("invalid image url")
-			return response.SendBadRequestResponse(c, "invalid image url")
 		}
 
 		updateRequest.ID = id
 
 		// TODO: add logic to update product
 		if err := h.service.Update(updateRequest); err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 

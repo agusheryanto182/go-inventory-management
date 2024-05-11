@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"errors"
 
 	"github.com/agusheryanto182/go-inventory-management/module/entities"
@@ -12,6 +13,17 @@ import (
 
 type ProductRepository struct {
 	db *sqlx.DB
+}
+
+// GetCheckoutItemByCheckoutID implements product.RepositoryProductInterface.
+func (r *ProductRepository) GetCheckoutItemByCheckoutID(checkoutID string) ([]*entities.CheckoutItems, error) {
+	checkoutItems := []*entities.CheckoutItems{}
+
+	err := r.db.Select(&checkoutItems, "SELECT * FROM checkout_items WHERE checkout_id = $1", checkoutID)
+	if err != nil {
+		return nil, err
+	}
+	return checkoutItems, nil
 }
 
 // GetProductByID implements product.RepositoryProductInterface.
@@ -39,17 +51,23 @@ func (r *ProductRepository) CheckoutProduct(payload *dto.CheckoutProductRequest)
 		}
 	}()
 
-	stmt, err := tx.Preparex("UPDATE products SET stock = stock - $1 WHERE id = $2 AND is_available = true")
+	stmtUpdateStock, err := tx.Preparex("UPDATE products SET stock = stock - $1 WHERE id = $2")
+	if err != nil {
+		return err
+	}
+	defer stmtUpdateStock.Close()
+
+	stmt, err := tx.Preparex("INSERT INTO checkouts (id, customer_id, paid, change, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	stmtCheckout, err := tx.Preparex("INSERT INTO checkouts (id, customer_id, product_id, quantity, paid, change) VALUES ($1, $2, $3, $4, $5, $6)")
+	stmtCheckoutItem, err := tx.Preparex("INSERT INTO checkout_items (id, checkout_id, product_id, quantity, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)")
 	if err != nil {
 		return err
 	}
-	defer stmtCheckout.Close()
+	defer stmtCheckoutItem.Close()
 
 	UUIDs := make([]string, len(payload.ProductDetails))
 	for i := 0; i < len(payload.ProductDetails); i++ {
@@ -63,29 +81,41 @@ func (r *ProductRepository) CheckoutProduct(payload *dto.CheckoutProductRequest)
 	for i := 0; i < len(payload.ProductDetails); i++ {
 		productID := payload.ProductDetails[i].ProductID
 		quantity := payload.ProductDetails[i].Quantity
-
-		_, err = stmt.Exec(quantity, productID)
-		if err != nil {
-			return err
-		}
-
-		_, err = stmtCheckout.Exec(UUIDs[i], payload.CustomerID, productID, quantity, payload.Paid, payload.Change)
+		_, err = stmtUpdateStock.Exec(quantity, productID)
 		if err != nil {
 			return err
 		}
 	}
+
+	var checkoutIDRs sql.NullString
+	err = stmt.QueryRow(UUIDs[0], payload.CustomerID, payload.Paid, payload.Change).Scan(&checkoutIDRs)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(payload.ProductDetails); i++ {
+		productID := payload.ProductDetails[i].ProductID
+		quantity := payload.ProductDetails[i].Quantity
+
+		_, err = stmtCheckoutItem.Exec(UUIDs[i], checkoutIDRs.String, productID, quantity)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
 // GetHistoryCheckout implements product.RepositoryProductInterface.
 func (r *ProductRepository) GetHistoryCheckout(query string, filters []interface{}) ([]*entities.Checkout, error) {
-	histories := []*entities.Checkout{}
+	checkouts := []*entities.Checkout{}
 
-	err := r.db.Select(&histories, query, filters...)
+	err := r.db.Select(&checkouts, query, filters...)
 	if err != nil {
 		return nil, err
 	}
-	return histories, nil
+
+	return checkouts, nil
 }
 
 // GetByCustomer implements product.RepositoryProductInterface.

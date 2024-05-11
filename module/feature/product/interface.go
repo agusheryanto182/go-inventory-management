@@ -17,6 +17,7 @@ type RepositoryProductInterface interface {
 	CheckoutProduct(payload *dto.CheckoutProductRequest) error
 	GetHistoryCheckout(query string, filters []interface{}) ([]*entities.Checkout, error)
 	GetProductByID(ID string) (*entities.Product, error)
+	GetCheckoutItemByCheckoutID(checkoutID string) ([]*entities.CheckoutItems, error)
 }
 
 type ServiceProductInterface interface {

@@ -20,27 +20,23 @@ func (h *StaffHandler) StaffLogin() echo.HandlerFunc {
 
 		// TODO: add logic to bind request
 		if err := c.Bind(&loginRequest); err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
 		// TODO: add validation
 		if err := h.validator.Struct(loginRequest); err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
 		// TODO: add logic to check if phone number already exist
 		isPhoneNumberExists, _ := h.service.IsStaffPhoneNumberExists(loginRequest.PhoneNumber)
 		if !isPhoneNumberExists {
-			c.Logger().Error("user is not found")
 			return response.SendStatusNotFoundResponse(c, "user is not found")
 		}
 
 		// TODO: add logic to login
 		staff, err := h.service.StaffLogin(loginRequest)
 		if err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
@@ -55,27 +51,23 @@ func (h *StaffHandler) StaffRegister() echo.HandlerFunc {
 
 		// TODO: add logic to bind request
 		if err := c.Bind(&registerRequest); err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
 		// TODO: add validation
 		if err := h.validator.Struct(registerRequest); err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
 		// TODO: add logic to check if phone number already exist
 		isPhoneNumberExists, _ := h.service.IsStaffPhoneNumberExists(registerRequest.PhoneNumber)
 		if isPhoneNumberExists {
-			c.Logger().Error("Phone number already exist")
 			return response.SendStatusConflictResponse(c, "Phone number already exist")
 		}
 
 		// TODO: add logic to register
 		staff, err := h.service.StaffRegister(registerRequest)
 		if err != nil {
-			c.Logger().Error(err.Error())
 			return response.SendBadRequestResponse(c, err.Error())
 		}
 
