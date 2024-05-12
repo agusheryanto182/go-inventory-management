@@ -1,14 +1,29 @@
-FROM golang:1.22-alpine
+# Stage 1: Build the application
+FROM golang:1.22-alpine AS builder
 
-COPY . /main_AgusHeryanto182
+# Set the working directory in the container
+WORKDIR /app
 
-WORKDIR /main_AgusHeryanto182
+# Copy the current directory contents into the container
+COPY . .
 
+# Download dependencies
 RUN go mod tidy
 
-RUN go build -o main_AgusHeryanto182 .
+# Build the Go app
+RUN go build -o /app/main .
 
+# Stage 2: Create a minimal image to run the application
+FROM alpine
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the binary from the builder stage to the final stage
+COPY --from=builder /app/main .
+
+# Expose port 8080 to the outside world
 EXPOSE 8080
 
-CMD ["/main_AgusHeryanto182/main_AgusHeryanto182"]
-
+# Command to run the executable
+CMD ["./main"]
