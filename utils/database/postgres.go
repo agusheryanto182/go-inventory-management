@@ -33,4 +33,4 @@ func InitDatabase() (*sqlx.DB, error) {
 // migrate -database "postgres://postgres:iatuyachie1Hae4Maih5izee1vie6Ooxu@projectsprint-db.cavsdeuj9ixh.ap-southeast-1.rds.amazonaws.com:5432/postgres?sslrootcert=ap-southeast-1-bundle.pem&sslmode=verify-full" -path ./db/migrations -verbose up
 
 // migration down
-// migrate -database "postgres://postgres:iatuyachie1Hae4Maih5izee1vie6Ooxu@projectsprint-db.cavsdeuj9ixh.ap-southeast-1.rds.amazonaws.com:5432/postgres?sslrootcert=ap-southeast-1-bundle.pem&sslmode=verify-full" -path ./db/migrations -verbose down
+// migrate -database "postgres://postgres:iatuyachie1Hae4Maih5izee1vie6Ooxu@projectsprint-db.cavsdeuj9ixh.ap-southeast-1.rds.amazonaws.com:5432/postgres?sslrootcert=ap-southeast-1-bundle.pem&sslmode=verify-full" -path ./db/migrations -verbose drop
